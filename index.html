@@ -10299,7 +10299,7 @@ Elm.Main.make = function (_elm) {
    $StartApp$Simple = Elm.StartApp.Simple.make(_elm),
    $String = Elm.String.make(_elm);
    var _op = {};
-   var $eval = F2(function (p,t) {    return p.amplitude * $Basics.sin(t * p.frequency + p.phase) * Math.pow($Basics.e,(0 - p.damp) * t);});
+   var $eval = F2(function (p,t) {    return p.amplitude * $Basics.sin(t * p.frequency + p.phase) * Math.pow($Basics.e,(0 - p.damping) * t);});
    var point = F2(function (model,time) {
       return {ctor: "_Tuple2"
              ,_0: $List.sum(_U.list([A2($eval,model.px1,time),A2($eval,model.px2,time)]))
@@ -10354,14 +10354,14 @@ Elm.Main.make = function (_elm) {
               }},
               p.frequency)
               ,A2(slider,
-              {title: "damp"
+              {title: "damping"
               ,min: 0.0
               ,max: 1.0e-3
               ,step: 1.0e-6
               ,update: function (x) {
-                 return A2($Signal.message,address,function (p) {    return _U.update(p,{damp: x});});
+                 return A2($Signal.message,address,function (p) {    return _U.update(p,{damping: x});});
               }},
-              p.damp)]));
+              p.damping)]));
    });
    var Y2 = function (a) {    return {ctor: "Y2",_0: a};};
    var Y1 = function (a) {    return {ctor: "Y1",_0: a};};
@@ -10396,12 +10396,12 @@ Elm.Main.make = function (_elm) {
          default: var p = _p1._0(model.py1);
            return _U.update(model,{py2: p});}
    });
-   var initialModel = {px1: {frequency: 0.7,phase: 0,amplitude: 200,damp: 2.0e-3}
-                      ,px2: {frequency: 0.6,phase: 0,amplitude: 200,damp: 1.2e-4}
-                      ,py1: {frequency: 0.5,phase: 0,amplitude: 230,damp: 1.7e-6}
-                      ,py2: {frequency: 0.7,phase: 0,amplitude: 200,damp: 1.3e-6}};
+   var initialModel = {px1: {frequency: 0.7,phase: 0,amplitude: 200,damping: 2.0e-3}
+                      ,px2: {frequency: 0.6,phase: 0,amplitude: 200,damping: 1.2e-4}
+                      ,py1: {frequency: 0.5,phase: 0,amplitude: 230,damping: 1.7e-6}
+                      ,py2: {frequency: 0.7,phase: 0,amplitude: 200,damping: 1.3e-6}};
    var Model = F4(function (a,b,c,d) {    return {px1: a,px2: b,py1: c,py2: d};});
-   var Params = F4(function (a,b,c,d) {    return {frequency: a,phase: b,amplitude: c,damp: d};});
+   var Params = F4(function (a,b,c,d) {    return {frequency: a,phase: b,amplitude: c,damping: d};});
    var main = $StartApp$Simple.start({model: initialModel,view: view,update: update});
    return _elm.Main.values = {_op: _op
                              ,main: main

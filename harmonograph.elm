@@ -17,7 +17,7 @@ type alias Params =
   { frequency : Float
   , phase : Float
   , amplitude : Float
-  , damp : Float
+  , damping : Float
   }
 
 
@@ -34,25 +34,25 @@ initialModel =
     { frequency = 0.7
     , phase = 0
     , amplitude = 200
-    , damp = 0.002
+    , damping = 0.002
     }
   , px2 =
     { frequency = 0.6
     , phase = 0
     , amplitude = 200
-    , damp = 0.00012
+    , damping = 0.00012
     }
   , py1 =
     { frequency = 0.5
     , phase = 0
     , amplitude = 230
-    , damp = 0.0000017
+    , damping = 0.0000017
     }
   , py2 =
     { frequency = 0.7
     , phase = 0
     , amplitude = 200
-    , damp = 0.0000013
+    , damping = 0.0000013
     }
   }
 
@@ -135,12 +135,12 @@ controlBlock address p =
       , update = \x -> Signal.message address (\p -> { p | frequency = x })
       } p.frequency
     , slider
-      { title = "damp"
+      { title = "damping"
       , min = 0.0
       , max = 0.001
       , step = 0.000001
-      , update = \x -> Signal.message address (\p -> { p | damp = x })
-      } p.damp
+      , update = \x -> Signal.message address (\p -> { p | damping = x })
+      } p.damping
     ]
 
 type alias SliderAttributes =
@@ -202,4 +202,4 @@ point model time =
 
 eval : Params -> Float -> Float
 eval p t =
-  p.amplitude * sin (t * p.frequency + p.phase) * e ^ (-p.damp * t)
+  p.amplitude * sin (t * p.frequency + p.phase) * e ^ (-p.damping * t)
