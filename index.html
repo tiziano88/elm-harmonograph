@@ -10279,6 +10279,74 @@ Elm.StartApp.Simple.make = function (_elm) {
    };
    var Config = F3(function (a,b,c) {    return {model: a,view: b,update: c};});
    return _elm.StartApp.Simple.values = {_op: _op,Config: Config,start: start};
+};Elm.Harmonograph = Elm.Harmonograph || {};
+Elm.Harmonograph.make = function (_elm) {
+   "use strict";
+   _elm.Harmonograph = _elm.Harmonograph || {};
+   if (_elm.Harmonograph.values) return _elm.Harmonograph.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $Json$Decode = Elm.Json.Decode.make(_elm),
+   $Json$Encode = Elm.Json.Encode.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var _op = {};
+   var Model = F4(function (a,b,c,d) {    return {x1: a,x2: b,y1: c,y2: d};});
+   var paramsEncoder = function (v) {
+      return $Json$Encode.object(_U.list([{ctor: "_Tuple2",_0: "frequency",_1: $Json$Encode.$float(v.frequency)}
+                                         ,{ctor: "_Tuple2",_0: "phase",_1: $Json$Encode.$float(v.phase)}
+                                         ,{ctor: "_Tuple2",_0: "amplitude",_1: $Json$Encode.$float(v.amplitude)}
+                                         ,{ctor: "_Tuple2",_0: "damping",_1: $Json$Encode.$float(v.damping)}]));
+   };
+   var Params = F4(function (a,b,c,d) {    return {frequency: a,phase: b,amplitude: c,damping: d};});
+   var optionalEncoder = F2(function (encoder,v) {
+      var _p0 = v;
+      if (_p0.ctor === "Just") {
+            return encoder(_p0._0);
+         } else {
+            return $Json$Encode.$null;
+         }
+   });
+   var modelEncoder = function (v) {
+      return $Json$Encode.object(_U.list([{ctor: "_Tuple2",_0: "x1",_1: A2(optionalEncoder,paramsEncoder,v.x1)}
+                                         ,{ctor: "_Tuple2",_0: "x2",_1: A2(optionalEncoder,paramsEncoder,v.x2)}
+                                         ,{ctor: "_Tuple2",_0: "y1",_1: A2(optionalEncoder,paramsEncoder,v.y1)}
+                                         ,{ctor: "_Tuple2",_0: "y2",_1: A2(optionalEncoder,paramsEncoder,v.y2)}]));
+   };
+   var enumField = F2(function (decoder,name) {    return A2($Json$Decode._op[":="],name,decoder);});
+   var withDefault = F2(function ($default,decoder) {    return $Json$Decode.oneOf(_U.list([decoder,$Json$Decode.succeed($default)]));});
+   var intField = function (name) {    return A2(withDefault,0,A2($Json$Decode._op[":="],name,$Json$Decode.$int));};
+   var floatField = function (name) {    return A2(withDefault,0.0,A2($Json$Decode._op[":="],name,$Json$Decode.$float));};
+   var paramsDecoder = A5($Json$Decode.object4,Params,floatField("frequency"),floatField("phase"),floatField("amplitude"),floatField("damping"));
+   var boolField = function (name) {    return A2(withDefault,false,A2($Json$Decode._op[":="],name,$Json$Decode.bool));};
+   var stringField = function (name) {    return A2(withDefault,"",A2($Json$Decode._op[":="],name,$Json$Decode.string));};
+   var optional = function (decoder) {    return $Json$Decode.oneOf(_U.list([A2($Json$Decode.map,$Maybe.Just,decoder),$Json$Decode.succeed($Maybe.Nothing)]));};
+   var messageField = F2(function (decoder,name) {    return optional(A2($Json$Decode._op[":="],name,decoder));});
+   var modelDecoder = A5($Json$Decode.object4,
+   Model,
+   A2(messageField,paramsDecoder,"x1"),
+   A2(messageField,paramsDecoder,"x2"),
+   A2(messageField,paramsDecoder,"y1"),
+   A2(messageField,paramsDecoder,"y2"));
+   return _elm.Harmonograph.values = {_op: _op
+                                     ,optional: optional
+                                     ,withDefault: withDefault
+                                     ,intField: intField
+                                     ,floatField: floatField
+                                     ,boolField: boolField
+                                     ,stringField: stringField
+                                     ,messageField: messageField
+                                     ,enumField: enumField
+                                     ,optionalEncoder: optionalEncoder
+                                     ,Params: Params
+                                     ,paramsDecoder: paramsDecoder
+                                     ,paramsEncoder: paramsEncoder
+                                     ,Model: Model
+                                     ,modelDecoder: modelDecoder
+                                     ,modelEncoder: modelEncoder};
 };Elm.Main = Elm.Main || {};
 Elm.Main.make = function (_elm) {
    "use strict";
@@ -10289,9 +10357,11 @@ Elm.Main.make = function (_elm) {
    $Color = Elm.Color.make(_elm),
    $Debug = Elm.Debug.make(_elm),
    $Graphics$Collage = Elm.Graphics.Collage.make(_elm),
+   $Harmonograph = Elm.Harmonograph.make(_elm),
    $Html = Elm.Html.make(_elm),
    $Html$Attributes = Elm.Html.Attributes.make(_elm),
    $Html$Events = Elm.Html.Events.make(_elm),
+   $Json$Encode = Elm.Json.Encode.make(_elm),
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
    $Result = Elm.Result.make(_elm),
@@ -10300,29 +10370,41 @@ Elm.Main.make = function (_elm) {
    $String = Elm.String.make(_elm);
    var _op = {};
    var $eval = F2(function (p,t) {    return p.amplitude * $Basics.sin(t * p.frequency + p.phase) * Math.pow($Basics.e,(0 - p.damping) * t);});
+   var def = function (x) {
+      var _p0 = x;
+      if (_p0.ctor === "Just") {
+            return _p0._0;
+         } else {
+            return {amplitude: 0.0,damping: 0.0,frequency: 0.0,phase: 0.0};
+         }
+   };
    var point = F2(function (model,time) {
       return {ctor: "_Tuple2"
-             ,_0: $List.sum(_U.list([A2($eval,model.px1,time),A2($eval,model.px2,time)]))
-             ,_1: $List.sum(_U.list([A2($eval,model.py1,time),A2($eval,model.py2,time)]))};
+             ,_0: $List.sum(_U.list([A2($eval,def(model.x1),time),A2($eval,def(model.x2),time)]))
+             ,_1: $List.sum(_U.list([A2($eval,def(model.y1),time),A2($eval,def(model.y2),time)]))};
    });
    var values = function (model) {    var n = 1000;var res = 3;return A2($List.map,function (x) {    return A2(point,model,x / res);},_U.range(0,n * res));};
    var trace = function (model) {    return A2($Graphics$Collage.traced,$Graphics$Collage.solid($Color.blue),$Graphics$Collage.path(values(model)));};
    var parse = function (s) {    return A2($Result.withDefault,0,$String.toFloat(s));};
+   var SliderAttributes = F5(function (a,b,c,d,e) {    return {title: a,min: b,max: c,step: d,update: e};});
+   _op["=>"] = F2(function (v0,v1) {    return {ctor: "_Tuple2",_0: v0,_1: v1};});
    var slider = F2(function (attr,v) {
       return A2($Html.div,
       _U.list([]),
-      _U.list([$Html.text(attr.title)
+      _U.list([A2($Html.span,
+              _U.list([$Html$Attributes.style(_U.list([A2(_op["=>"],"display","inline-block"),A2(_op["=>"],"width","7em")]))]),
+              _U.list([$Html.text(attr.title)]))
               ,A2($Html.input,
               _U.list([$Html$Attributes.type$("range")
                       ,$Html$Attributes.min($Basics.toString(attr.min))
                       ,$Html$Attributes.max($Basics.toString(attr.max))
                       ,$Html$Attributes.step($Basics.toString(attr.step))
                       ,$Html$Attributes.value($Basics.toString(v))
-                      ,A3($Html$Events.on,"input",$Html$Events.targetValue,function (_p0) {    return attr.update(parse(_p0));})]),
+                      ,A3($Html$Events.on,"input",$Html$Events.targetValue,function (_p1) {    return attr.update(parse(_p1));})
+                      ,$Html$Attributes.style(_U.list([A2(_op["=>"],"width","30em")]))]),
               _U.list([]))
               ,$Html.text($Basics.toString(v))]));
    });
-   var SliderAttributes = F5(function (a,b,c,d,e) {    return {title: a,min: b,max: c,step: d,update: e};});
    var controlBlock = F2(function (address,p) {
       return A2($Html.div,
       _U.list([]),
@@ -10363,6 +10445,14 @@ Elm.Main.make = function (_elm) {
               }},
               p.damping)]));
    });
+   var dataWidget = F2(function (address,model) {
+      return A2($Html.div,
+      _U.list([]),
+      _U.list([A2($Html.textarea,
+      _U.list([$Html$Attributes.style(_U.list([A2(_op["=>"],"width","30em"),A2(_op["=>"],"height","30em")]))
+              ,$Html$Attributes.value(A2($Json$Encode.encode,2,$Harmonograph.modelEncoder(model)))]),
+      _U.list([]))]));
+   });
    var Y2 = function (a) {    return {ctor: "Y2",_0: a};};
    var Y1 = function (a) {    return {ctor: "Y1",_0: a};};
    var X2 = function (a) {    return {ctor: "X2",_0: a};};
@@ -10371,42 +10461,40 @@ Elm.Main.make = function (_elm) {
       return A2($Html.div,
       _U.list([]),
       _U.list([$Html.text("x1")
-              ,A2(controlBlock,A2($Signal.forwardTo,address,X1),model.px1)
+              ,A2(controlBlock,A2($Signal.forwardTo,address,X1),def(model.x1))
               ,$Html.text("x2")
-              ,A2(controlBlock,A2($Signal.forwardTo,address,X2),model.px2)
+              ,A2(controlBlock,A2($Signal.forwardTo,address,X2),def(model.x2))
               ,$Html.text("y1")
-              ,A2(controlBlock,A2($Signal.forwardTo,address,Y1),model.py1)
+              ,A2(controlBlock,A2($Signal.forwardTo,address,Y1),def(model.y1))
               ,$Html.text("y2")
-              ,A2(controlBlock,A2($Signal.forwardTo,address,Y2),model.py2)]));
+              ,A2(controlBlock,A2($Signal.forwardTo,address,Y2),def(model.y2))]));
    });
    var view = F2(function (address,model) {
       return A2($Html.div,
       _U.list([]),
-      _U.list([$Html.fromElement(A3($Graphics$Collage.collage,1000,1000,_U.list([trace(model)]))),A2(paramControls,address,model)]));
+      _U.list([$Html.fromElement(A3($Graphics$Collage.collage,1000,1000,_U.list([trace(model)])))
+              ,A2(paramControls,address,model)
+              ,A2(dataWidget,address,model)]));
    });
    var update = F2(function (action,model) {
-      var _p1 = action;
-      switch (_p1.ctor)
-      {case "X1": var p = _p1._0(model.px1);
-           return _U.update(model,{px1: p});
-         case "X2": var p = _p1._0(model.px2);
-           return _U.update(model,{px2: p});
-         case "Y1": var p = _p1._0(model.py1);
-           return _U.update(model,{py1: p});
-         default: var p = _p1._0(model.py1);
-           return _U.update(model,{py2: p});}
+      var _p2 = action;
+      switch (_p2.ctor)
+      {case "X1": var p = _p2._0(def(model.x1));
+           return _U.update(model,{x1: $Maybe.Just(p)});
+         case "X2": var p = _p2._0(def(model.x2));
+           return _U.update(model,{x2: $Maybe.Just(p)});
+         case "Y1": var p = _p2._0(def(model.y1));
+           return _U.update(model,{y1: $Maybe.Just(p)});
+         default: var p = _p2._0(def(model.y1));
+           return _U.update(model,{y2: $Maybe.Just(p)});}
    });
-   var initialModel = {px1: {frequency: 0.7,phase: 0,amplitude: 200,damping: 2.0e-3}
-                      ,px2: {frequency: 0.6,phase: 0,amplitude: 200,damping: 1.2e-4}
-                      ,py1: {frequency: 0.5,phase: 0,amplitude: 230,damping: 1.7e-6}
-                      ,py2: {frequency: 0.7,phase: 0,amplitude: 200,damping: 1.3e-6}};
-   var Model = F4(function (a,b,c,d) {    return {px1: a,px2: b,py1: c,py2: d};});
-   var Params = F4(function (a,b,c,d) {    return {frequency: a,phase: b,amplitude: c,damping: d};});
+   var initialModel = {x1: $Maybe.Just({frequency: 0.7,phase: 0,amplitude: 200,damping: 2.0e-3})
+                      ,x2: $Maybe.Just({frequency: 0.6,phase: 0,amplitude: 200,damping: 1.2e-4})
+                      ,y1: $Maybe.Just({frequency: 0.5,phase: 0,amplitude: 230,damping: 1.7e-6})
+                      ,y2: $Maybe.Just({frequency: 0.7,phase: 0,amplitude: 200,damping: 1.3e-6})};
    var main = $StartApp$Simple.start({model: initialModel,view: view,update: update});
    return _elm.Main.values = {_op: _op
                              ,main: main
-                             ,Params: Params
-                             ,Model: Model
                              ,initialModel: initialModel
                              ,update: update
                              ,X1: X1
@@ -10414,6 +10502,7 @@ Elm.Main.make = function (_elm) {
                              ,Y1: Y1
                              ,Y2: Y2
                              ,view: view
+                             ,dataWidget: dataWidget
                              ,paramControls: paramControls
                              ,controlBlock: controlBlock
                              ,SliderAttributes: SliderAttributes
@@ -10422,5 +10511,6 @@ Elm.Main.make = function (_elm) {
                              ,trace: trace
                              ,values: values
                              ,point: point
+                             ,def: def
                              ,$eval: $eval};
 };</script></head><body><script type="text/javascript">Elm.fullscreen(Elm.Main)</script></body></html>
