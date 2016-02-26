@@ -1,6 +1,7 @@
 import Color exposing (..)
 import Graphics.Collage exposing (..)
 import Graphics.Element exposing (..)
+import History
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
