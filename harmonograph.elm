@@ -1,7 +1,6 @@
 import Color exposing (..)
 import Graphics.Collage exposing (..)
 import Graphics.Element exposing (..)
-import History
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
@@ -14,39 +13,54 @@ import Harmonograph exposing (..)
 
 main : Signal Html
 main =
-  StartApp.start { model = initialModel, view = view, update = update }
+  StartApp.start
+    { model = initialModel
+    , view = view
+    , update = update
+    }
 
 
+initialModel : Model
 initialModel =
-  { x1 = Just
-    { frequency = 0.7
-    , phase = 0
-    , amplitude = 200
-    , damping = 0.002
-    }
-  , x2 = Just
-    { frequency = 0.6
-    , phase = 0
-    , amplitude = 200
-    , damping = 0.00012
-    }
-  , y1 = Just
-    { frequency = 0.5
-    , phase = 0
-    , amplitude = 230
-    , damping = 0.0000017
-    }
-  , y2 = Just
-    { frequency = 0.7
-    , phase = 0
-    , amplitude = 200
-    , damping = 0.0000013
-    }
+  { resolution = 4
+  , max = 1000
+  , x1 =
+    Just
+      { frequency = 0.7
+      , phase = 0
+      , amplitude = 200
+      , damping = 0.002
+      }
+  , x2 =
+    Just
+      { frequency = 0.6
+      , phase = 0
+      , amplitude = 200
+      , damping = 0.00012
+      }
+  , y1 =
+    Just
+      { frequency = 0.5
+      , phase = 0
+      , amplitude = 230
+      , damping = 0.0000017
+      }
+  , y2 =
+    Just
+      { frequency = 0.7
+      , phase = 0
+      , amplitude = 200
+      , damping = 0.0000013
+      }
   }
 
 
+update : Action -> Model -> Model
 update action model =
   case action of
+    M f ->
+      f model
+
     X1 f ->
       let
         p = f <| def model.x1
@@ -72,7 +86,8 @@ update action model =
         { model | y2 = Just p }
 
 type Action
-  = X1 (Params -> Params)
+  = M (Model -> Model)
+  | X1 (Params -> Params)
   | X2 (Params -> Params)
   | Y1 (Params -> Params)
   | Y2 (Params -> Params)
@@ -96,9 +111,25 @@ dataWidget address model =
       , value <| JE.encode 2 <| modelEncoder model ] []
     ]
 
+
+paramControls : Signal.Address Action -> Model -> Html
 paramControls address model =
   div []
-    [ Html.text "x1"
+    [ slider
+      { title = "resolution"
+      , min = 0.0
+      , max = 10.0
+      , step = 1.0
+      , update = \x -> Signal.message address (M (\p -> { p | resolution = round x }))
+      } (toFloat model.resolution)
+    , slider
+      { title = "samples"
+      , min = 100.0
+      , max = 10000.0
+      , step = 100.0
+      , update = \x -> Signal.message address (M (\p -> { p | max = round x }))
+      } (toFloat model.max)
+    , Html.text "x1"
     , controlBlock (Signal.forwardTo address X1) (def model.x1)
     , Html.text "x2"
     , controlBlock (Signal.forwardTo address X2) (def model.x2)
@@ -131,8 +162,8 @@ controlBlock address p =
     , slider
       { title = "frequency"
       , min = 0.0
-      , max = 1.0
-      , step = 0.001
+      , max = 10.0
+      , step = 0.01
       , update = \x -> Signal.message address (\p -> { p | frequency = x })
       } p.frequency
     , slider
@@ -192,10 +223,10 @@ trace model =
 values : Model -> List (Float, Float)
 values model =
   let
-    res = 3
-    n = 1000
+    res = model.resolution
+    n = model.max
   in
-    List.map (\x -> point model (x/res)) [0..(n*res)]
+    List.map (\x -> point model ((toFloat x)/(toFloat res))) [0..(n*res)]
 
 
 point : Model -> Float -> (Float, Float)
@@ -209,6 +240,7 @@ point model time =
     , eval (def model.y2) time
     ]
   )
+
 
 def : Maybe Params -> Params
 def x =

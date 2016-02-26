@@ -89,7 +89,9 @@ paramsEncoder v =
 
 
 type alias Model =
-  { x1 : Maybe Params
+  { resolution : Int
+  , max : Int
+  , x1 : Maybe Params
   , x2 : Maybe Params
   , y1 : Maybe Params
   , y2 : Maybe Params
@@ -98,7 +100,9 @@ type alias Model =
 
 modelDecoder : JD.Decoder Model
 modelDecoder =
-  JD.object4 Model
+  JD.object6 Model
+    (intField "resolution")
+    (intField "max")
     (messageField paramsDecoder "x1")
     (messageField paramsDecoder "x2")
     (messageField paramsDecoder "y1")
@@ -108,7 +112,9 @@ modelDecoder =
 modelEncoder : Model -> JE.Value
 modelEncoder v =
   JE.object
-    [ ("x1", optionalEncoder paramsEncoder v.x1)
+    [ ("resolution", JE.int v.resolution)
+    , ("max", JE.int v.max)
+    , ("x1", optionalEncoder paramsEncoder v.x1)
     , ("x2", optionalEncoder paramsEncoder v.x2)
     , ("y1", optionalEncoder paramsEncoder v.y1)
     , ("y2", optionalEncoder paramsEncoder v.y2)

@@ -10294,7 +10294,7 @@ Elm.Harmonograph.make = function (_elm) {
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm);
    var _op = {};
-   var Model = F4(function (a,b,c,d) {    return {x1: a,x2: b,y1: c,y2: d};});
+   var Model = F6(function (a,b,c,d,e,f) {    return {resolution: a,max: b,x1: c,x2: d,y1: e,y2: f};});
    var paramsEncoder = function (v) {
       return $Json$Encode.object(_U.list([{ctor: "_Tuple2",_0: "frequency",_1: $Json$Encode.$float(v.frequency)}
                                          ,{ctor: "_Tuple2",_0: "phase",_1: $Json$Encode.$float(v.phase)}
@@ -10311,7 +10311,9 @@ Elm.Harmonograph.make = function (_elm) {
          }
    });
    var modelEncoder = function (v) {
-      return $Json$Encode.object(_U.list([{ctor: "_Tuple2",_0: "x1",_1: A2(optionalEncoder,paramsEncoder,v.x1)}
+      return $Json$Encode.object(_U.list([{ctor: "_Tuple2",_0: "resolution",_1: $Json$Encode.$int(v.resolution)}
+                                         ,{ctor: "_Tuple2",_0: "max",_1: $Json$Encode.$int(v.max)}
+                                         ,{ctor: "_Tuple2",_0: "x1",_1: A2(optionalEncoder,paramsEncoder,v.x1)}
                                          ,{ctor: "_Tuple2",_0: "x2",_1: A2(optionalEncoder,paramsEncoder,v.x2)}
                                          ,{ctor: "_Tuple2",_0: "y1",_1: A2(optionalEncoder,paramsEncoder,v.y1)}
                                          ,{ctor: "_Tuple2",_0: "y2",_1: A2(optionalEncoder,paramsEncoder,v.y2)}]));
@@ -10325,8 +10327,10 @@ Elm.Harmonograph.make = function (_elm) {
    var stringField = function (name) {    return A2(withDefault,"",A2($Json$Decode._op[":="],name,$Json$Decode.string));};
    var optional = function (decoder) {    return $Json$Decode.oneOf(_U.list([A2($Json$Decode.map,$Maybe.Just,decoder),$Json$Decode.succeed($Maybe.Nothing)]));};
    var messageField = F2(function (decoder,name) {    return optional(A2($Json$Decode._op[":="],name,decoder));});
-   var modelDecoder = A5($Json$Decode.object4,
+   var modelDecoder = A7($Json$Decode.object6,
    Model,
+   intField("resolution"),
+   intField("max"),
    A2(messageField,paramsDecoder,"x1"),
    A2(messageField,paramsDecoder,"x2"),
    A2(messageField,paramsDecoder,"y1"),
@@ -10383,7 +10387,11 @@ Elm.Main.make = function (_elm) {
              ,_0: $List.sum(_U.list([A2($eval,def(model.x1),time),A2($eval,def(model.x2),time)]))
              ,_1: $List.sum(_U.list([A2($eval,def(model.y1),time),A2($eval,def(model.y2),time)]))};
    });
-   var values = function (model) {    var n = 1000;var res = 3;return A2($List.map,function (x) {    return A2(point,model,x / res);},_U.range(0,n * res));};
+   var values = function (model) {
+      var n = model.max;
+      var res = model.resolution;
+      return A2($List.map,function (x) {    return A2(point,model,$Basics.toFloat(x) / $Basics.toFloat(res));},_U.range(0,n * res));
+   };
    var trace = function (model) {    return A2($Graphics$Collage.traced,$Graphics$Collage.solid($Color.blue),$Graphics$Collage.path(values(model)));};
    var parse = function (s) {    return A2($Result.withDefault,0,$String.toFloat(s));};
    var SliderAttributes = F5(function (a,b,c,d,e) {    return {title: a,min: b,max: c,step: d,update: e};});
@@ -10429,8 +10437,8 @@ Elm.Main.make = function (_elm) {
               ,A2(slider,
               {title: "frequency"
               ,min: 0.0
-              ,max: 1.0
-              ,step: 1.0e-3
+              ,max: 10.0
+              ,step: 1.0e-2
               ,update: function (x) {
                  return A2($Signal.message,address,function (p) {    return _U.update(p,{frequency: x});});
               }},
@@ -10457,10 +10465,29 @@ Elm.Main.make = function (_elm) {
    var Y1 = function (a) {    return {ctor: "Y1",_0: a};};
    var X2 = function (a) {    return {ctor: "X2",_0: a};};
    var X1 = function (a) {    return {ctor: "X1",_0: a};};
+   var M = function (a) {    return {ctor: "M",_0: a};};
    var paramControls = F2(function (address,model) {
       return A2($Html.div,
       _U.list([]),
-      _U.list([$Html.text("x1")
+      _U.list([A2(slider,
+              {title: "resolution"
+              ,min: 0.0
+              ,max: 10.0
+              ,step: 1.0
+              ,update: function (x) {
+                 return A2($Signal.message,address,M(function (p) {    return _U.update(p,{resolution: $Basics.round(x)});}));
+              }},
+              $Basics.toFloat(model.resolution))
+              ,A2(slider,
+              {title: "samples"
+              ,min: 100.0
+              ,max: 10000.0
+              ,step: 100.0
+              ,update: function (x) {
+                 return A2($Signal.message,address,M(function (p) {    return _U.update(p,{max: $Basics.round(x)});}));
+              }},
+              $Basics.toFloat(model.max))
+              ,$Html.text("x1")
               ,A2(controlBlock,A2($Signal.forwardTo,address,X1),def(model.x1))
               ,$Html.text("x2")
               ,A2(controlBlock,A2($Signal.forwardTo,address,X2),def(model.x2))
@@ -10479,7 +10506,8 @@ Elm.Main.make = function (_elm) {
    var update = F2(function (action,model) {
       var _p2 = action;
       switch (_p2.ctor)
-      {case "X1": var p = _p2._0(def(model.x1));
+      {case "M": return _p2._0(model);
+         case "X1": var p = _p2._0(def(model.x1));
            return _U.update(model,{x1: $Maybe.Just(p)});
          case "X2": var p = _p2._0(def(model.x2));
            return _U.update(model,{x2: $Maybe.Just(p)});
@@ -10488,7 +10516,9 @@ Elm.Main.make = function (_elm) {
          default: var p = _p2._0(def(model.y1));
            return _U.update(model,{y2: $Maybe.Just(p)});}
    });
-   var initialModel = {x1: $Maybe.Just({frequency: 0.7,phase: 0,amplitude: 200,damping: 2.0e-3})
+   var initialModel = {resolution: 4
+                      ,max: 1000
+                      ,x1: $Maybe.Just({frequency: 0.7,phase: 0,amplitude: 200,damping: 2.0e-3})
                       ,x2: $Maybe.Just({frequency: 0.6,phase: 0,amplitude: 200,damping: 1.2e-4})
                       ,y1: $Maybe.Just({frequency: 0.5,phase: 0,amplitude: 230,damping: 1.7e-6})
                       ,y2: $Maybe.Just({frequency: 0.7,phase: 0,amplitude: 200,damping: 1.3e-6})};
@@ -10497,6 +10527,7 @@ Elm.Main.make = function (_elm) {
                              ,main: main
                              ,initialModel: initialModel
                              ,update: update
+                             ,M: M
                              ,X1: X1
                              ,X2: X2
                              ,Y1: Y1

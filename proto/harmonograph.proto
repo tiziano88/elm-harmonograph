@@ -8,8 +8,11 @@ message Params {
 }
 
 message Model {
-  Params x1 = 1;
-  Params x2 = 2;
-  Params y1 = 3;
-  Params y2 = 4;
+  int64 resolution = 1;
+  int64 max = 2;
+
+  Params x1 = 3;
+  Params x2 = 4;
+  Params y1 = 5;
+  Params y2 = 6;
 }
