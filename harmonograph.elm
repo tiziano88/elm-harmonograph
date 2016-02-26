@@ -94,10 +94,24 @@ view address model =
     [ fromElement <| collage 1000 1000
       [ trace model
       ]
-    , paramControls (Signal.forwardTo address X1) model
+    , paramControls address model
     ]
 
 paramControls address model =
+  div []
+    [ Html.text "x1"
+    , controlBlock (Signal.forwardTo address X1) model.px1
+    , Html.text "x2"
+    , controlBlock (Signal.forwardTo address X2) model.px2
+    , Html.text "y1"
+    , controlBlock (Signal.forwardTo address Y1) model.py1
+    , Html.text "y2"
+    , controlBlock (Signal.forwardTo address Y2) model.py2
+    ]
+
+
+controlBlock : Signal.Address (Params -> Params) -> Params -> Html
+controlBlock address p =
   div []
     [ slider
       { title = "amplitude"
@@ -105,30 +119,29 @@ paramControls address model =
       , max = 1000.0
       , step = 1.0
       , update = \x -> Signal.message address (\p -> { p | amplitude = x })
-      } model.px1.amplitude
+      } p.amplitude
     , slider
       { title = "phase"
       , min = 0.0
       , max = 10.0
       , step = 0.001
       , update = \x -> Signal.message address (\p -> { p | phase = x })
-      } model.px1.phase
+      } p.phase
     , slider
       { title = "frequency"
       , min = 0.0
       , max = 1.0
       , step = 0.001
       , update = \x -> Signal.message address (\p -> { p | frequency = x })
-      } model.px1.frequency
+      } p.frequency
     , slider
       { title = "damp"
       , min = 0.0
       , max = 0.001
       , step = 0.000001
       , update = \x -> Signal.message address (\p -> { p | damp = x })
-      } model.px1.damp
+      } p.damp
     ]
-
 
 type alias SliderAttributes =
   { title : String
