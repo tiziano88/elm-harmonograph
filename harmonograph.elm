@@ -169,7 +169,7 @@ controlBlock address p =
     , slider
       { title = "damping"
       , min = 0.0
-      , max = 0.001
+      , max = 0.003
       , step = 0.000001
       , update = \x -> Signal.message address (\p -> { p | damping = x })
       } p.damping

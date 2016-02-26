@@ -10446,7 +10446,7 @@ Elm.Main.make = function (_elm) {
               ,A2(slider,
               {title: "damping"
               ,min: 0.0
-              ,max: 1.0e-3
+              ,max: 3.0e-3
               ,step: 1.0e-6
               ,update: function (x) {
                  return A2($Signal.message,address,function (p) {    return _U.update(p,{damping: x});});
