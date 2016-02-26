@@ -61,6 +61,30 @@ optionalEncoder encoder v =
       JE.null
 
 
+type alias Param =
+  { value : Float
+  , frequency : Float
+  , amplitude : Float
+  }
+
+
+paramDecoder : JD.Decoder Param
+paramDecoder =
+  JD.object3 Param
+    (floatField "value")
+    (floatField "frequency")
+    (floatField "amplitude")
+
+
+paramEncoder : Param -> JE.Value
+paramEncoder v =
+  JE.object
+    [ ("value", JE.float v.value)
+    , ("frequency", JE.float v.frequency)
+    , ("amplitude", JE.float v.amplitude)
+    ]
+
+
 type alias Params =
   { frequency : Float
   , phase : Float
@@ -88,7 +112,7 @@ paramsEncoder v =
     ]
 
 
-type alias Model =
+type alias Config =
   { resolution : Int
   , max : Int
   , x1 : Maybe Params
@@ -98,9 +122,9 @@ type alias Model =
   }
 
 
-modelDecoder : JD.Decoder Model
-modelDecoder =
-  JD.object6 Model
+configDecoder : JD.Decoder Config
+configDecoder =
+  JD.object6 Config
     (intField "resolution")
     (intField "max")
     (messageField paramsDecoder "x1")
@@ -109,8 +133,8 @@ modelDecoder =
     (messageField paramsDecoder "y2")
 
 
-modelEncoder : Model -> JE.Value
-modelEncoder v =
+configEncoder : Config -> JE.Value
+configEncoder v =
   JE.object
     [ ("resolution", JE.int v.resolution)
     , ("max", JE.int v.max)

@@ -10,6 +10,7 @@ import Json.Encode as JE
 import StartApp
 import String
 import Task
+import Time
 
 import Harmonograph exposing (..)
 
@@ -24,85 +25,118 @@ port tasks =
   app.tasks
 
 
+fps : Int
+fps =
+  100
+
+
+type alias Model =
+  { config : Config
+  , time : Float
+  , eff : Float
+  }
+
+
 app =
   StartApp.start
     { init = init
     , view = view
     , update = update
-    , inputs = []
+    , inputs = [ Time.fps fps |> Signal.map (\_ -> Tick) ]
     }
 
 
 init : (Model, Effects Action)
 init = (initialModel, Effects.none)
 
+
 initialModel : Model
 initialModel =
-  { resolution = 4
-  , max = 1000
-  , x1 =
-    Just
-      { frequency = 0.7
-      , phase = 0
-      , amplitude = 200
-      , damping = 0.002
-      }
-  , x2 =
-    Just
-      { frequency = 0.6
-      , phase = 0
-      , amplitude = 200
-      , damping = 0.00012
-      }
-  , y1 =
-    Just
-      { frequency = 0.5
-      , phase = 0
-      , amplitude = 230
-      , damping = 0.0000017
-      }
-  , y2 =
-    Just
-      { frequency = 0.7
-      , phase = 0
-      , amplitude = 200
-      , damping = 0.0000013
-      }
+  { time = 0.0
+  , eff = 0.0
+  , config =
+    { resolution = 4
+    , max = 1000
+    , x1 =
+      Just
+        { frequency = 0.7
+        , phase = 0
+        , amplitude = 200
+        , damping = 0.002
+        }
+    , x2 =
+      Just
+        { frequency = 0.6
+        , phase = 0
+        , amplitude = 200
+        , damping = 0.00012
+        }
+    , y1 =
+      Just
+        { frequency = 0.5
+        , phase = 0
+        , amplitude = 230
+        , damping = 0.0000017
+        }
+    , y2 =
+      Just
+        { frequency = 0.7
+        , phase = 0
+        , amplitude = 200
+        , damping = 0.0000013
+        }
+    }
   }
+
+
+lfo : Model -> Model
+lfo model =
+  { model | eff = (def model.config.x1).phase + (10 * sin (model.time / (toFloat fps))) }
 
 
 update : Action -> Model -> ( Model, Effects Action )
 update action model =
   case action of
+    Tick ->
+      ( lfo { model | time = model.time + 1}, Effects.none )
+
     M f ->
-      ( f model, Effects.none )
+      let
+        c = model.config
+      in
+        ( { model | config = f c }, Effects.none )
 
     X1 f ->
       let
-        p = f <| def model.x1
+        c = model.config
+        p = f <| def c.x1
       in
-        ( { model | x1 = Just p }, Effects.none )
+        ( { model | config = { c | x1 = Just p } }, Effects.none )
 
     X2 f ->
       let
-        p = f <| def model.x2
+        c = model.config
+        p = f <| def c.x2
       in
-        ( { model | x2 = Just p }, Effects.none )
+        ( { model | config = { c | x2 = Just p } }, Effects.none )
 
     Y1 f ->
       let
-        p = f <| def model.y1
+        c = model.config
+        p = f <| def c.y1
       in
-        ( { model | y1 = Just p }, Effects.none )
+        ( { model | config = { c | y1 = Just p } }, Effects.none )
 
     Y2 f ->
       let
-        p = f <| def model.y1
+        c = model.config
+        p = f <| def c.y1
       in
-        ( { model | y2 = Just p }, Effects.none )
+        ( { model | config = { c | y2 = Just p } }, Effects.none )
 
 type Action
-  = M (Model -> Model)
+  = Tick
+  | M (Config -> Config)
   | X1 (Params -> Params)
   | X2 (Params -> Params)
   | Y1 (Params -> Params)
@@ -122,9 +156,9 @@ dataWidget address model =
     [ textarea
       [ style
         [ "width" => "30em"
-        , "height" => "30em"
+        , "height" => "60em"
         ]
-      , value <| JE.encode 2 <| modelEncoder model
+      , value <| JE.encode 2 <| configEncoder model.config
       ] []
     , button []
       [ Html.text "Load" ]
@@ -140,22 +174,29 @@ paramControls address model =
       , max = 10.0
       , step = 1.0
       , update = \x -> Signal.message address (M (\p -> { p | resolution = round x }))
-      } (toFloat model.resolution)
+      } (toFloat model.config.resolution)
     , slider
       { title = "samples"
       , min = 100.0
       , max = 10000.0
       , step = 100.0
       , update = \x -> Signal.message address (M (\p -> { p | max = round x }))
-      } (toFloat model.max)
+      } (toFloat model.config.max)
     , Html.text "x1"
-    , controlBlock (Signal.forwardTo address X1) (def model.x1)
+    , slider
+      { title = "phase (effective)"
+      , min = 0.0
+      , max = 10.0
+      , step = 0.001
+      , update = \x -> Signal.message address (M (\p -> p))
+      } model.eff
+    , controlBlock (Signal.forwardTo address X1) (def model.config.x1)
     , Html.text "x2"
-    , controlBlock (Signal.forwardTo address X2) (def model.x2)
+    , controlBlock (Signal.forwardTo address X2) (def model.config.x2)
     , Html.text "y1"
-    , controlBlock (Signal.forwardTo address Y1) (def model.y1)
+    , controlBlock (Signal.forwardTo address Y1) (def model.config.y1)
     , Html.text "y2"
-    , controlBlock (Signal.forwardTo address Y2) (def model.y2)
+    , controlBlock (Signal.forwardTo address Y2) (def model.config.y2)
     ]
 
 (=>) : String -> String -> (String, String)
@@ -171,13 +212,6 @@ controlBlock address p =
       , step = 1.0
       , update = \x -> Signal.message address (\p -> { p | amplitude = x })
       } p.amplitude
-    , slider
-      { title = "phase (effective)"
-      , min = 0.0
-      , max = 10.0
-      , step = 0.001
-      , update = \x -> Signal.message address (\p -> p)
-      } p.phase
     , slider
       { title = "phase"
       , min = 0.0
@@ -249,8 +283,8 @@ trace model =
 values : Model -> List (Float, Float)
 values model =
   let
-    res = model.resolution
-    n = model.max
+    res = model.config.resolution
+    n = model.config.max
   in
     List.map (\x -> point model ((toFloat x)/(toFloat res))) [0..(n*res)]
 
@@ -258,12 +292,12 @@ values model =
 point : Model -> Float -> (Float, Float)
 point model time =
   ( List.sum
-    [ eval (def model.x1) time
-    , eval (def model.x2) time
+    [ eval (def model.config.x1) time
+    , eval (def model.config.x2) time
     ]
   , List.sum
-    [ eval (def model.y1) time
-    , eval (def model.y2) time
+    [ eval (def model.config.y1) time
+    , eval (def model.config.y2) time
     ]
   )
 
