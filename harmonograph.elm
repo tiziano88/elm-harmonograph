@@ -4,6 +4,7 @@ import Graphics.Element exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
+import Http
 import Json.Encode as JE
 import StartApp.Simple as StartApp
 import String
@@ -108,7 +109,7 @@ dataWidget address model =
         [ "width" => "30em"
         , "height" => "30em"
         ]
-      , value <| JE.encode 2 <| modelEncoder model ] []
+      , value <| Http.uriEncode <| JE.encode 2 <| modelEncoder model ] []
     ]
 
 
