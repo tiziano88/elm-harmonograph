@@ -1,4 +1,5 @@
 import Color exposing (..)
+import Effects exposing (Effects)
 import Graphics.Collage exposing (..)
 import Graphics.Element exposing (..)
 import Html exposing (..)
@@ -6,20 +7,34 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Http
 import Json.Encode as JE
-import StartApp.Simple as StartApp
+import StartApp
 import String
+import Task
 
 import Harmonograph exposing (..)
 
 
 main : Signal Html
 main =
+  app.html
+
+
+port tasks : Signal (Task.Task Effects.Never ())
+port tasks =
+  app.tasks
+
+
+app =
   StartApp.start
-    { model = initialModel
+    { init = init
     , view = view
     , update = update
+    , inputs = []
     }
 
+
+init : (Model, Effects Action)
+init = (initialModel, Effects.none)
 
 initialModel : Model
 initialModel =
@@ -56,35 +71,35 @@ initialModel =
   }
 
 
-update : Action -> Model -> Model
+update : Action -> Model -> ( Model, Effects Action )
 update action model =
   case action of
     M f ->
-      f model
+      ( f model, Effects.none )
 
     X1 f ->
       let
         p = f <| def model.x1
       in
-        { model | x1 = Just p }
+        ( { model | x1 = Just p }, Effects.none )
 
     X2 f ->
       let
         p = f <| def model.x2
       in
-        { model | x2 = Just p }
+        ( { model | x2 = Just p }, Effects.none )
 
     Y1 f ->
       let
         p = f <| def model.y1
       in
-        { model | y1 = Just p }
+        ( { model | y1 = Just p }, Effects.none )
 
     Y2 f ->
       let
         p = f <| def model.y1
       in
-        { model | y2 = Just p }
+        ( { model | y2 = Just p }, Effects.none )
 
 type Action
   = M (Model -> Model)
@@ -109,7 +124,10 @@ dataWidget address model =
         [ "width" => "30em"
         , "height" => "30em"
         ]
-      , value <| Http.uriEncode <| JE.encode 2 <| modelEncoder model ] []
+      , value <| JE.encode 2 <| modelEncoder model
+      ] []
+    , button []
+      [ Html.text "Load" ]
     ]
 
 
@@ -153,6 +171,13 @@ controlBlock address p =
       , step = 1.0
       , update = \x -> Signal.message address (\p -> { p | amplitude = x })
       } p.amplitude
+    , slider
+      { title = "phase (effective)"
+      , min = 0.0
+      , max = 10.0
+      , step = 0.001
+      , update = \x -> Signal.message address (\p -> p)
+      } p.phase
     , slider
       { title = "phase"
       , min = 0.0
