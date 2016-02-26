@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+message Params {
+  float frequency = 1;
+  float phase = 2;
+  float amplitude = 3;
+  float damping = 4;
+}
+
+message Model {
+  Params x1 = 1;
+  Params x2 = 2;
+  Params y1 = 3;
+  Params y2 = 4;
+}

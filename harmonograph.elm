@@ -4,8 +4,11 @@ import Graphics.Element exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
+import Json.Encode as JE
 import StartApp.Simple as StartApp
 import String
+
+import Harmonograph exposing (..)
 
 
 main : Signal Html
@@ -13,42 +16,26 @@ main =
   StartApp.start { model = initialModel, view = view, update = update }
 
 
-type alias Params =
-  { frequency : Float
-  , phase : Float
-  , amplitude : Float
-  , damping : Float
-  }
-
-
-type alias Model =
-  { px1 : Params
-  , px2 : Params
-  , py1 : Params
-  , py2 : Params
-  }
-
-
 initialModel =
-  { px1 =
+  { x1 = Just
     { frequency = 0.7
     , phase = 0
     , amplitude = 200
     , damping = 0.002
     }
-  , px2 =
+  , x2 = Just
     { frequency = 0.6
     , phase = 0
     , amplitude = 200
     , damping = 0.00012
     }
-  , py1 =
+  , y1 = Just
     { frequency = 0.5
     , phase = 0
     , amplitude = 230
     , damping = 0.0000017
     }
-  , py2 =
+  , y2 = Just
     { frequency = 0.7
     , phase = 0
     , amplitude = 200
@@ -61,27 +48,27 @@ update action model =
   case action of
     X1 f ->
       let
-        p = f model.px1
+        p = f <| def model.x1
       in
-        { model | px1 = p }
+        { model | x1 = Just p }
 
     X2 f ->
       let
-        p = f model.px2
+        p = f <| def model.x2
       in
-        { model | px2 = p }
+        { model | x2 = Just p }
 
     Y1 f ->
       let
-        p = f model.py1
+        p = f <| def model.y1
       in
-        { model | py1 = p }
+        { model | y1 = Just p }
 
     Y2 f ->
       let
-        p = f model.py1
+        p = f <| def model.y1
       in
-        { model | py2 = p }
+        { model | y2 = Just p }
 
 type Action
   = X1 (Params -> Params)
@@ -95,18 +82,29 @@ view address model =
       [ trace model
       ]
     , paramControls address model
+    , dataWidget address model
+    ]
+
+dataWidget address model =
+  div []
+    [ textarea
+      [ style
+        [ "width" => "30em"
+        , "height" => "30em"
+        ]
+      , value <| JE.encode 2 <| modelEncoder model ] []
     ]
 
 paramControls address model =
   div []
     [ Html.text "x1"
-    , controlBlock (Signal.forwardTo address X1) model.px1
+    , controlBlock (Signal.forwardTo address X1) (def model.x1)
     , Html.text "x2"
-    , controlBlock (Signal.forwardTo address X2) model.px2
+    , controlBlock (Signal.forwardTo address X2) (def model.x2)
     , Html.text "y1"
-    , controlBlock (Signal.forwardTo address Y1) model.py1
+    , controlBlock (Signal.forwardTo address Y1) (def model.y1)
     , Html.text "y2"
-    , controlBlock (Signal.forwardTo address Y2) model.py2
+    , controlBlock (Signal.forwardTo address Y2) (def model.y2)
     ]
 
 (=>) : String -> String -> (String, String)
@@ -202,14 +200,27 @@ values model =
 point : Model -> Float -> (Float, Float)
 point model time =
   ( List.sum
-    [ eval model.px1 time
-    , eval model.px2 time
+    [ eval (def model.x1) time
+    , eval (def model.x2) time
     ]
   , List.sum
-    [ eval model.py1 time
-    , eval model.py2 time
+    [ eval (def model.y1) time
+    , eval (def model.y2) time
     ]
   )
+
+def : Maybe Params -> Params
+def x =
+  case x of
+    Just x ->
+      x
+
+    Nothing ->
+      { amplitude = 0.0
+      , damping = 0.0
+      , frequency = 0.0
+      , phase = 0.0
+      }
 
 
 eval : Params -> Float -> Float
