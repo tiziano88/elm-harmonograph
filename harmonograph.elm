@@ -109,6 +109,8 @@ paramControls address model =
     , controlBlock (Signal.forwardTo address Y2) model.py2
     ]
 
+(=>) : String -> String -> (String, String)
+(=>) = (,)
 
 controlBlock : Signal.Address (Params -> Params) -> Params -> Html
 controlBlock address p =
@@ -155,7 +157,14 @@ type alias SliderAttributes =
 slider : SliderAttributes -> Float -> Html
 slider attr v =
   div []
-    [ Html.text attr.title
+    [ span
+      [ style
+        [ "display" => "inline-block"
+        , "width" => "7em"
+        ]
+      ]
+      [ Html.text attr.title
+      ]
     , input
       [ type' "range"
       , Html.Attributes.min <| toString attr.min
@@ -163,6 +172,9 @@ slider attr v =
       , Html.Attributes.step <| toString attr.step
       , Html.Attributes.value <| toString v
       , on "input" targetValue (parse >> attr.update)
+      , style
+        [ "width" => "30em"
+        ]
       ] []
     , Html.text <| toString v
     ]
