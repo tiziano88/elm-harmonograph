@@ -27,12 +27,13 @@ port tasks =
 
 fps : Int
 fps =
-  1
+  10
 
 
 type alias Model =
   { config : Config
   , time : Float
+  , animate : Bool
   , eff : Float
   }
 
@@ -54,6 +55,7 @@ initialModel : Model
 initialModel =
   { time = 0.0
   , eff = 0.0
+  , animate = False
   , config =
     { resolution = 4
     , max = 1000
@@ -98,13 +100,38 @@ update : Action -> Model -> ( Model, Effects Action )
 update action model =
   case action of
     Tick ->
-      ( lfo { model | time = model.time + 1}, Effects.none )
+      if
+        model.animate
+      then
+        let
+          c = model.config
+          x1 = def model.config.x1
+          x2 = def model.config.x2
+          y1 = def model.config.y1
+          y2 = def model.config.y2
+          c1 =
+            { c
+            | x1 = Just { x1 | phase = x1.phase + 0.01 }
+            , x2 = Just { x2 | phase = x2.phase + 0.01 }
+            , y1 = Just { y1 | phase = y1.phase + 0.01 }
+            , y2 = Just { y2 | phase = y2.phase + 0.01 }
+            }
+        in
+          ({ model | config = c1 }, Effects.none)
+      else
+        (model, Effects.none)
 
     M f ->
       let
         c = model.config
       in
         ( { model | config = f c }, Effects.none )
+
+    Start ->
+      ( { model | animate = True }, Effects.none )
+
+    Stop ->
+      ( { model | animate = False }, Effects.none )
 
     X1 f ->
       let
@@ -136,6 +163,8 @@ update action model =
 
 type Action
   = Tick
+  | Start
+  | Stop
   | M (Config -> Config)
   | X1 (Params -> Params)
   | X2 (Params -> Params)
@@ -194,10 +223,14 @@ paramControls address model =
     , controlBlock (Signal.forwardTo address Y1) (def model.config.y1)
     , Html.text "y2"
     , controlBlock (Signal.forwardTo address Y2) (def model.config.y2)
+    , button [ onClick address Start ] [ Html.text ">" ]
+    , button [ onClick address Stop ] [ Html.text "||" ]
     ]
+
 
 (=>) : String -> String -> (String, String)
 (=>) = (,)
+
 
 controlBlock : Signal.Address (Params -> Params) -> Params -> Html
 controlBlock address p =
@@ -212,7 +245,7 @@ controlBlock address p =
     , slider
       { title = "phase"
       , min = 0.0
-      , max = 10.0
+      , max = 2 * pi
       , step = 0.001
       , update = \x -> Signal.message address (\p -> { p | phase = x })
       } p.phase
@@ -231,6 +264,7 @@ controlBlock address p =
       , update = \x -> Signal.message address (\p -> { p | damping = x })
       } p.damping
     ]
+
 
 type alias SliderAttributes =
   { title : String
@@ -262,7 +296,7 @@ slider attr v =
       , Html.Attributes.max <| toString attr.max
       , Html.Attributes.step <| toString attr.step
       , Html.Attributes.value <| toString v
-      , on "input" targetValue (parse >> attr.update)
+      , on "input" targetValue (parseFloat >> attr.update)
       , style
         [ "width" => "30em"
         ]
@@ -278,8 +312,8 @@ slider attr v =
     ]
 
 
-parse : String -> Float
-parse s =
+parseFloat : String -> Float
+parseFloat s =
   String.toFloat s |> Result.withDefault 0
 
 
