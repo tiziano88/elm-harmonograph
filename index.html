@@ -11194,7 +11194,7 @@ Elm.Main.make = function (_elm) {
                                ,y2: $Maybe.Just({frequency: 0.7,phase: 0,amplitude: 200,damping: 1.3e-6})}};
    var init = {ctor: "_Tuple2",_0: initialModel,_1: $Effects.none};
    var Model = F3(function (a,b,c) {    return {config: a,time: b,eff: c};});
-   var fps = 100;
+   var fps = 1;
    var lfo = function (model) {    return _U.update(model,{eff: def(model.config.x1).phase + 10 * $Basics.sin(model.time / $Basics.toFloat(fps))});};
    var update = F2(function (action,model) {
       var _p2 = action;

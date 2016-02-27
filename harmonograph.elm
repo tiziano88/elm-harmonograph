@@ -27,7 +27,7 @@ port tasks =
 
 fps : Int
 fps =
-  100
+  1
 
 
 type alias Model =
