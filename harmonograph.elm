@@ -195,8 +195,10 @@ view address model =
       [ "display" => "flex"
       ]
     ]
-    [ fromElement <| collage 1000 1000
-      [ trace model
+    [ div []
+      [ fromElement <| collage 1000 1000
+        [ trace model
+        ]
       ]
     , paramControls address model
     , dataWidget address model

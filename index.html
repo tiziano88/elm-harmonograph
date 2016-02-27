@@ -11226,7 +11226,7 @@ Elm.Main.make = function (_elm) {
    var view = F2(function (address,model) {
       return A2($Html.div,
       _U.list([$Html$Attributes.style(_U.list([A2(_op["=>"],"display","flex")]))]),
-      _U.list([$Html.fromElement(A3($Graphics$Collage.collage,1000,1000,_U.list([trace(model)])))
+      _U.list([A2($Html.div,_U.list([]),_U.list([$Html.fromElement(A3($Graphics$Collage.collage,1000,1000,_U.list([trace(model)])))]))
               ,A2(paramControls,address,model)
               ,A2(dataWidget,address,model)]));
    });
