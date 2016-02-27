@@ -11088,6 +11088,69 @@ Elm.Main.make = function (_elm) {
               _U.list([$Html$Attributes.style(_U.list([A2(_op["=>"],"display","inline-block"),A2(_op["=>"],"width","7em")]))]),
               _U.list([$Html.text($Basics.toString(v))]))]));
    });
+   var dataWidget = F2(function (address,model) {
+      return A2($Html.div,
+      _U.list([]),
+      _U.list([A2($Html.textarea,
+              _U.list([$Html$Attributes.style(_U.list([A2(_op["=>"],"width","30em"),A2(_op["=>"],"height","60em")]))
+                      ,$Html$Attributes.value(A2($Json$Encode.encode,2,$Proto$Harmonograph.configEncoder(model.config)))]),
+              _U.list([]))
+              ,A2($Html.button,_U.list([]),_U.list([$Html.text("Load")]))]));
+   });
+   var Y2 = function (a) {    return {ctor: "Y2",_0: a};};
+   var Y1 = function (a) {    return {ctor: "Y1",_0: a};};
+   var X2 = function (a) {    return {ctor: "X2",_0: a};};
+   var X1 = function (a) {    return {ctor: "X1",_0: a};};
+   var M = function (a) {    return {ctor: "M",_0: a};};
+   var Stop = {ctor: "Stop"};
+   var Start = {ctor: "Start"};
+   var Tick = {ctor: "Tick"};
+   var initialModel = {time: 0.0
+                      ,eff: 0.0
+                      ,animate: false
+                      ,config: {resolution: 4
+                               ,max: 1000
+                               ,x1: $Maybe.Just({frequency: 0.4,phase: 0,amplitude: 200,damping: 2.0e-3})
+                               ,x2: $Maybe.Just({frequency: 0.8,phase: 0,amplitude: 200,damping: 1.2e-4})
+                               ,y1: $Maybe.Just({frequency: 0.3,phase: 0,amplitude: 230,damping: 1.7e-4})
+                               ,y2: $Maybe.Just({frequency: 0.4,phase: 0,amplitude: 200,damping: 1.3e-4})}};
+   var init = {ctor: "_Tuple2",_0: initialModel,_1: $Effects.none};
+   var Model = F4(function (a,b,c,d) {    return {config: a,time: b,animate: c,eff: d};});
+   var maxPhase = 2 * $Basics.pi;
+   var phaseAdd = F2(function (x,y) {    var z = x + y;return _U.cmp(z,maxPhase) > 0 ? z - maxPhase : z;});
+   var update = F2(function (action,model) {
+      var _p2 = action;
+      switch (_p2.ctor)
+      {case "Tick": if (model.animate) {
+                 var y2 = def(model.config.y2);
+                 var y1 = def(model.config.y1);
+                 var x2 = def(model.config.x2);
+                 var x1 = def(model.config.x1);
+                 var c = model.config;
+                 var c1 = _U.update(c,
+                 {x1: $Maybe.Just(_U.update(x1,{phase: A2(phaseAdd,x1.phase,1.0e-2)}))
+                 ,x2: $Maybe.Just(_U.update(x2,{phase: A2(phaseAdd,x2.phase,1.0e-2)}))
+                 ,y1: $Maybe.Just(_U.update(y1,{phase: A2(phaseAdd,y1.phase,1.0e-2)}))
+                 ,y2: $Maybe.Just(_U.update(y2,{phase: A2(phaseAdd,y2.phase,1.0e-2)}))});
+                 return {ctor: "_Tuple2",_0: _U.update(model,{config: c1}),_1: $Effects.none};
+              } else return {ctor: "_Tuple2",_0: model,_1: $Effects.none};
+         case "M": var c = model.config;
+           return {ctor: "_Tuple2",_0: _U.update(model,{config: _p2._0(c)}),_1: $Effects.none};
+         case "Start": return {ctor: "_Tuple2",_0: _U.update(model,{animate: true}),_1: $Effects.none};
+         case "Stop": return {ctor: "_Tuple2",_0: _U.update(model,{animate: false}),_1: $Effects.none};
+         case "X1": var c = model.config;
+           var p = _p2._0(def(c.x1));
+           return {ctor: "_Tuple2",_0: _U.update(model,{config: _U.update(c,{x1: $Maybe.Just(p)})}),_1: $Effects.none};
+         case "X2": var c = model.config;
+           var p = _p2._0(def(c.x2));
+           return {ctor: "_Tuple2",_0: _U.update(model,{config: _U.update(c,{x2: $Maybe.Just(p)})}),_1: $Effects.none};
+         case "Y1": var c = model.config;
+           var p = _p2._0(def(c.y1));
+           return {ctor: "_Tuple2",_0: _U.update(model,{config: _U.update(c,{y1: $Maybe.Just(p)})}),_1: $Effects.none};
+         default: var c = model.config;
+           var p = _p2._0(def(c.y2));
+           return {ctor: "_Tuple2",_0: _U.update(model,{config: _U.update(c,{y2: $Maybe.Just(p)})}),_1: $Effects.none};}
+   });
    var controlBlock = F2(function (address,p) {
       return A2($Html.div,
       _U.list([]),
@@ -11103,7 +11166,7 @@ Elm.Main.make = function (_elm) {
               ,A2(slider,
               {title: "phase"
               ,min: 0.0
-              ,max: 2 * $Basics.pi
+              ,max: maxPhase
               ,step: 1.0e-3
               ,update: function (x) {
                  return A2($Signal.message,address,function (p) {    return _U.update(p,{phase: x});});
@@ -11128,22 +11191,6 @@ Elm.Main.make = function (_elm) {
               }},
               p.damping)]));
    });
-   var dataWidget = F2(function (address,model) {
-      return A2($Html.div,
-      _U.list([]),
-      _U.list([A2($Html.textarea,
-              _U.list([$Html$Attributes.style(_U.list([A2(_op["=>"],"width","30em"),A2(_op["=>"],"height","60em")]))
-                      ,$Html$Attributes.value(A2($Json$Encode.encode,2,$Proto$Harmonograph.configEncoder(model.config)))]),
-              _U.list([]))
-              ,A2($Html.button,_U.list([]),_U.list([$Html.text("Load")]))]));
-   });
-   var Y2 = function (a) {    return {ctor: "Y2",_0: a};};
-   var Y1 = function (a) {    return {ctor: "Y1",_0: a};};
-   var X2 = function (a) {    return {ctor: "X2",_0: a};};
-   var X1 = function (a) {    return {ctor: "X1",_0: a};};
-   var M = function (a) {    return {ctor: "M",_0: a};};
-   var Stop = {ctor: "Stop"};
-   var Start = {ctor: "Start"};
    var paramControls = F2(function (address,model) {
       return A2($Html.div,
       _U.list([]),
@@ -11183,51 +11230,6 @@ Elm.Main.make = function (_elm) {
               ,A2(paramControls,address,model)
               ,A2(dataWidget,address,model)]));
    });
-   var Tick = {ctor: "Tick"};
-   var update = F2(function (action,model) {
-      var _p2 = action;
-      switch (_p2.ctor)
-      {case "Tick": if (model.animate) {
-                 var y2 = def(model.config.y2);
-                 var y1 = def(model.config.y1);
-                 var x2 = def(model.config.x2);
-                 var x1 = def(model.config.x1);
-                 var c = model.config;
-                 var c1 = _U.update(c,
-                 {x1: $Maybe.Just(_U.update(x1,{phase: x1.phase + 1.0e-2}))
-                 ,x2: $Maybe.Just(_U.update(x2,{phase: x2.phase + 1.0e-2}))
-                 ,y1: $Maybe.Just(_U.update(y1,{phase: y1.phase + 1.0e-2}))
-                 ,y2: $Maybe.Just(_U.update(y2,{phase: y2.phase + 1.0e-2}))});
-                 return {ctor: "_Tuple2",_0: _U.update(model,{config: c1}),_1: $Effects.none};
-              } else return {ctor: "_Tuple2",_0: model,_1: $Effects.none};
-         case "M": var c = model.config;
-           return {ctor: "_Tuple2",_0: _U.update(model,{config: _p2._0(c)}),_1: $Effects.none};
-         case "Start": return {ctor: "_Tuple2",_0: _U.update(model,{animate: true}),_1: $Effects.none};
-         case "Stop": return {ctor: "_Tuple2",_0: _U.update(model,{animate: false}),_1: $Effects.none};
-         case "X1": var c = model.config;
-           var p = _p2._0(def(c.x1));
-           return {ctor: "_Tuple2",_0: _U.update(model,{config: _U.update(c,{x1: $Maybe.Just(p)})}),_1: $Effects.none};
-         case "X2": var c = model.config;
-           var p = _p2._0(def(c.x2));
-           return {ctor: "_Tuple2",_0: _U.update(model,{config: _U.update(c,{x2: $Maybe.Just(p)})}),_1: $Effects.none};
-         case "Y1": var c = model.config;
-           var p = _p2._0(def(c.y1));
-           return {ctor: "_Tuple2",_0: _U.update(model,{config: _U.update(c,{y1: $Maybe.Just(p)})}),_1: $Effects.none};
-         default: var c = model.config;
-           var p = _p2._0(def(c.y2));
-           return {ctor: "_Tuple2",_0: _U.update(model,{config: _U.update(c,{y2: $Maybe.Just(p)})}),_1: $Effects.none};}
-   });
-   var initialModel = {time: 0.0
-                      ,eff: 0.0
-                      ,animate: false
-                      ,config: {resolution: 4
-                               ,max: 1000
-                               ,x1: $Maybe.Just({frequency: 1.0,phase: 0,amplitude: 200,damping: 2.0e-3})
-                               ,x2: $Maybe.Just({frequency: 1.0,phase: 0,amplitude: 200,damping: 1.2e-4})
-                               ,y1: $Maybe.Just({frequency: 1.0,phase: 0,amplitude: 230,damping: 1.7e-4})
-                               ,y2: $Maybe.Just({frequency: 0.5,phase: 0,amplitude: 200,damping: 1.3e-4})}};
-   var init = {ctor: "_Tuple2",_0: initialModel,_1: $Effects.none};
-   var Model = F4(function (a,b,c,d) {    return {config: a,time: b,animate: c,eff: d};});
    var fps = 10;
    var app = $StartApp.start({init: init,view: view,update: update,inputs: _U.list([A2($Signal.map,function (_p3) {    return Tick;},$Time.fps(fps))])});
    var lfo = function (model) {    return _U.update(model,{eff: def(model.config.x1).phase + 10 * $Basics.sin(model.time / $Basics.toFloat(fps))});};
@@ -11236,11 +11238,13 @@ Elm.Main.make = function (_elm) {
    return _elm.Main.values = {_op: _op
                              ,main: main
                              ,fps: fps
+                             ,maxPhase: maxPhase
                              ,Model: Model
                              ,app: app
                              ,init: init
                              ,initialModel: initialModel
                              ,lfo: lfo
+                             ,phaseAdd: phaseAdd
                              ,update: update
                              ,Tick: Tick
                              ,Start: Start

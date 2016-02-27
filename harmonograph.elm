@@ -31,6 +31,10 @@ fps =
   10
 
 
+maxPhase : Float
+maxPhase =
+  2 * pi
+
 type alias Model =
   { config : Config
   , time : Float
@@ -62,28 +66,28 @@ initialModel =
     , max = 1000
     , x1 =
       Just
-        { frequency = 1.0
+        { frequency = 0.4
         , phase = 0
         , amplitude = 200
         , damping = 0.002
         }
     , x2 =
       Just
-        { frequency = 1.0
+        { frequency = 0.8
         , phase = 0
         , amplitude = 200
         , damping = 0.00012
         }
     , y1 =
       Just
-        { frequency = 1.0
+        { frequency = 0.3
         , phase = 0
         , amplitude = 230
         , damping = 0.00017
         }
     , y2 =
       Just
-        { frequency = 0.5
+        { frequency = 0.4
         , phase = 0
         , amplitude = 200
         , damping = 0.00013
@@ -95,6 +99,19 @@ initialModel =
 lfo : Model -> Model
 lfo model =
   { model | eff = (def model.config.x1).phase + (10 * sin (model.time / (toFloat fps))) }
+
+
+phaseAdd : Float -> Float -> Float
+phaseAdd x y =
+  let
+    z = x + y
+  in
+    if
+      z > maxPhase
+    then
+      z - maxPhase
+    else
+      z
 
 
 update : Action -> Model -> ( Model, Effects Action )
@@ -112,10 +129,10 @@ update action model =
           y2 = def model.config.y2
           c1 =
             { c
-            | x1 = Just { x1 | phase = x1.phase + 0.01 }
-            , x2 = Just { x2 | phase = x2.phase + 0.01 }
-            , y1 = Just { y1 | phase = y1.phase + 0.01 }
-            , y2 = Just { y2 | phase = y2.phase + 0.01 }
+            | x1 = Just { x1 | phase = phaseAdd x1.phase 0.01 }
+            , x2 = Just { x2 | phase = phaseAdd x2.phase 0.01 }
+            , y1 = Just { y1 | phase = phaseAdd y1.phase 0.01 }
+            , y2 = Just { y2 | phase = phaseAdd y2.phase 0.01 }
             }
         in
           ({ model | config = c1 }, Effects.none)
@@ -246,7 +263,7 @@ controlBlock address p =
     , slider
       { title = "phase"
       , min = 0.0
-      , max = 2 * pi
+      , max = maxPhase
       , step = 0.001
       , update = \x -> Signal.message address (\p -> { p | phase = x })
       } p.phase
