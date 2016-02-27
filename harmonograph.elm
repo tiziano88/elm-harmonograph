@@ -1,3 +1,4 @@
+import Array
 import Color exposing (..)
 import Effects exposing (Effects)
 import Graphics.Collage exposing (..)
@@ -328,7 +329,7 @@ values model =
     res = model.config.resolution
     n = model.config.max
   in
-    List.map (\x -> point model ((toFloat x)/(toFloat res))) [0..(n*res)]
+    Array.initialize (n*res) (\x -> point model ((toFloat x)/(toFloat res))) |> Array.toList
 
 
 point : Model -> Float -> (Float, Float)
