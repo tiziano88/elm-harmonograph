@@ -1,4 +1,4 @@
-module Harmonograph where
+module Proto.Harmonograph where
 
 
 import Json.Decode as JD exposing ((:=))

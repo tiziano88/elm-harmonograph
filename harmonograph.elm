@@ -12,7 +12,7 @@ import String
 import Task
 import Time
 
-import Harmonograph exposing (..)
+import Proto.Harmonograph exposing (..)
 
 
 main : Signal Html
@@ -59,31 +59,31 @@ initialModel =
     , max = 1000
     , x1 =
       Just
-        { frequency = 0.7
+        { frequency = 1.0
         , phase = 0
         , amplitude = 200
         , damping = 0.002
         }
     , x2 =
       Just
-        { frequency = 0.6
+        { frequency = 1.0
         , phase = 0
         , amplitude = 200
         , damping = 0.00012
         }
     , y1 =
       Just
-        { frequency = 0.5
+        { frequency = 1.0
         , phase = 0
         , amplitude = 230
-        , damping = 0.0000017
+        , damping = 0.00017
         }
     , y2 =
       Just
-        { frequency = 0.7
+        { frequency = 0.5
         , phase = 0
         , amplitude = 200
-        , damping = 0.0000013
+        , damping = 0.00013
         }
     }
   }
@@ -130,7 +130,7 @@ update action model =
     Y2 f ->
       let
         c = model.config
-        p = f <| def c.y1
+        p = f <| def c.y2
       in
         ( { model | config = { c | y2 = Just p } }, Effects.none )
 
@@ -143,7 +143,11 @@ type Action
   | Y2 (Params -> Params)
 
 view address model =
-  div []
+  div
+    [ style
+      [ "display" => "flex"
+      ]
+    ]
     [ fromElement <| collage 1000 1000
       [ trace model
       ]
@@ -183,13 +187,6 @@ paramControls address model =
       , update = \x -> Signal.message address (M (\p -> { p | max = round x }))
       } (toFloat model.config.max)
     , Html.text "x1"
-    , slider
-      { title = "phase (effective)"
-      , min = 0.0
-      , max = 10.0
-      , step = 0.001
-      , update = \x -> Signal.message address (M (\p -> p))
-      } model.eff
     , controlBlock (Signal.forwardTo address X1) (def model.config.x1)
     , Html.text "x2"
     , controlBlock (Signal.forwardTo address X2) (def model.config.x2)
@@ -246,7 +243,11 @@ type alias SliderAttributes =
 
 slider : SliderAttributes -> Float -> Html
 slider attr v =
-  div []
+  div
+    [ style
+      [ "width" => "40em"
+      ]
+    ]
     [ span
       [ style
         [ "display" => "inline-block"
@@ -266,7 +267,14 @@ slider attr v =
         [ "width" => "30em"
         ]
       ] []
-    , Html.text <| toString v
+    , span
+      [ style
+        [ "display" => "inline-block"
+        , "width" => "7em"
+        ]
+      ]
+      [ Html.text <| toString v
+      ]
     ]
 
 

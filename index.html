@@ -10936,11 +10936,13 @@ Elm.StartApp.make = function (_elm) {
    var App = F3(function (a,b,c) {    return {html: a,model: b,tasks: c};});
    var Config = F4(function (a,b,c,d) {    return {init: a,update: b,view: c,inputs: d};});
    return _elm.StartApp.values = {_op: _op,start: start,Config: Config,App: App};
-};Elm.Harmonograph = Elm.Harmonograph || {};
-Elm.Harmonograph.make = function (_elm) {
+};Elm.Proto = Elm.Proto || {};
+Elm.Proto.Harmonograph = Elm.Proto.Harmonograph || {};
+Elm.Proto.Harmonograph.make = function (_elm) {
    "use strict";
-   _elm.Harmonograph = _elm.Harmonograph || {};
-   if (_elm.Harmonograph.values) return _elm.Harmonograph.values;
+   _elm.Proto = _elm.Proto || {};
+   _elm.Proto.Harmonograph = _elm.Proto.Harmonograph || {};
+   if (_elm.Proto.Harmonograph.values) return _elm.Proto.Harmonograph.values;
    var _U = Elm.Native.Utils.make(_elm),
    $Basics = Elm.Basics.make(_elm),
    $Debug = Elm.Debug.make(_elm),
@@ -10999,25 +11001,25 @@ Elm.Harmonograph.make = function (_elm) {
    A2(messageField,paramsDecoder,"x2"),
    A2(messageField,paramsDecoder,"y1"),
    A2(messageField,paramsDecoder,"y2"));
-   return _elm.Harmonograph.values = {_op: _op
-                                     ,optional: optional
-                                     ,withDefault: withDefault
-                                     ,intField: intField
-                                     ,floatField: floatField
-                                     ,boolField: boolField
-                                     ,stringField: stringField
-                                     ,messageField: messageField
-                                     ,enumField: enumField
-                                     ,optionalEncoder: optionalEncoder
-                                     ,Param: Param
-                                     ,paramDecoder: paramDecoder
-                                     ,paramEncoder: paramEncoder
-                                     ,Params: Params
-                                     ,paramsDecoder: paramsDecoder
-                                     ,paramsEncoder: paramsEncoder
-                                     ,Config: Config
-                                     ,configDecoder: configDecoder
-                                     ,configEncoder: configEncoder};
+   return _elm.Proto.Harmonograph.values = {_op: _op
+                                           ,optional: optional
+                                           ,withDefault: withDefault
+                                           ,intField: intField
+                                           ,floatField: floatField
+                                           ,boolField: boolField
+                                           ,stringField: stringField
+                                           ,messageField: messageField
+                                           ,enumField: enumField
+                                           ,optionalEncoder: optionalEncoder
+                                           ,Param: Param
+                                           ,paramDecoder: paramDecoder
+                                           ,paramEncoder: paramEncoder
+                                           ,Params: Params
+                                           ,paramsDecoder: paramsDecoder
+                                           ,paramsEncoder: paramsEncoder
+                                           ,Config: Config
+                                           ,configDecoder: configDecoder
+                                           ,configEncoder: configEncoder};
 };Elm.Main = Elm.Main || {};
 Elm.Main.make = function (_elm) {
    "use strict";
@@ -11029,13 +11031,13 @@ Elm.Main.make = function (_elm) {
    $Debug = Elm.Debug.make(_elm),
    $Effects = Elm.Effects.make(_elm),
    $Graphics$Collage = Elm.Graphics.Collage.make(_elm),
-   $Harmonograph = Elm.Harmonograph.make(_elm),
    $Html = Elm.Html.make(_elm),
    $Html$Attributes = Elm.Html.Attributes.make(_elm),
    $Html$Events = Elm.Html.Events.make(_elm),
    $Json$Encode = Elm.Json.Encode.make(_elm),
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
+   $Proto$Harmonograph = Elm.Proto.Harmonograph.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm),
    $StartApp = Elm.StartApp.make(_elm),
@@ -11068,7 +11070,7 @@ Elm.Main.make = function (_elm) {
    _op["=>"] = F2(function (v0,v1) {    return {ctor: "_Tuple2",_0: v0,_1: v1};});
    var slider = F2(function (attr,v) {
       return A2($Html.div,
-      _U.list([]),
+      _U.list([$Html$Attributes.style(_U.list([A2(_op["=>"],"width","40em")]))]),
       _U.list([A2($Html.span,
               _U.list([$Html$Attributes.style(_U.list([A2(_op["=>"],"display","inline-block"),A2(_op["=>"],"width","7em")]))]),
               _U.list([$Html.text(attr.title)]))
@@ -11081,7 +11083,9 @@ Elm.Main.make = function (_elm) {
                       ,A3($Html$Events.on,"input",$Html$Events.targetValue,function (_p1) {    return attr.update(parse(_p1));})
                       ,$Html$Attributes.style(_U.list([A2(_op["=>"],"width","30em")]))]),
               _U.list([]))
-              ,$Html.text($Basics.toString(v))]));
+              ,A2($Html.span,
+              _U.list([$Html$Attributes.style(_U.list([A2(_op["=>"],"display","inline-block"),A2(_op["=>"],"width","7em")]))]),
+              _U.list([$Html.text($Basics.toString(v))]))]));
    });
    var controlBlock = F2(function (address,p) {
       return A2($Html.div,
@@ -11128,7 +11132,7 @@ Elm.Main.make = function (_elm) {
       _U.list([]),
       _U.list([A2($Html.textarea,
               _U.list([$Html$Attributes.style(_U.list([A2(_op["=>"],"width","30em"),A2(_op["=>"],"height","60em")]))
-                      ,$Html$Attributes.value(A2($Json$Encode.encode,2,$Harmonograph.configEncoder(model.config)))]),
+                      ,$Html$Attributes.value(A2($Json$Encode.encode,2,$Proto$Harmonograph.configEncoder(model.config)))]),
               _U.list([]))
               ,A2($Html.button,_U.list([]),_U.list([$Html.text("Load")]))]));
    });
@@ -11159,15 +11163,6 @@ Elm.Main.make = function (_elm) {
               }},
               $Basics.toFloat(model.config.max))
               ,$Html.text("x1")
-              ,A2(slider,
-              {title: "phase (effective)"
-              ,min: 0.0
-              ,max: 10.0
-              ,step: 1.0e-3
-              ,update: function (x) {
-                 return A2($Signal.message,address,M(function (p) {    return p;}));
-              }},
-              model.eff)
               ,A2(controlBlock,A2($Signal.forwardTo,address,X1),def(model.config.x1))
               ,$Html.text("x2")
               ,A2(controlBlock,A2($Signal.forwardTo,address,X2),def(model.config.x2))
@@ -11178,7 +11173,7 @@ Elm.Main.make = function (_elm) {
    });
    var view = F2(function (address,model) {
       return A2($Html.div,
-      _U.list([]),
+      _U.list([$Html$Attributes.style(_U.list([A2(_op["=>"],"display","flex")]))]),
       _U.list([$Html.fromElement(A3($Graphics$Collage.collage,1000,1000,_U.list([trace(model)])))
               ,A2(paramControls,address,model)
               ,A2(dataWidget,address,model)]));
@@ -11188,10 +11183,10 @@ Elm.Main.make = function (_elm) {
                       ,eff: 0.0
                       ,config: {resolution: 4
                                ,max: 1000
-                               ,x1: $Maybe.Just({frequency: 0.7,phase: 0,amplitude: 200,damping: 2.0e-3})
-                               ,x2: $Maybe.Just({frequency: 0.6,phase: 0,amplitude: 200,damping: 1.2e-4})
-                               ,y1: $Maybe.Just({frequency: 0.5,phase: 0,amplitude: 230,damping: 1.7e-6})
-                               ,y2: $Maybe.Just({frequency: 0.7,phase: 0,amplitude: 200,damping: 1.3e-6})}};
+                               ,x1: $Maybe.Just({frequency: 1.0,phase: 0,amplitude: 200,damping: 2.0e-3})
+                               ,x2: $Maybe.Just({frequency: 1.0,phase: 0,amplitude: 200,damping: 1.2e-4})
+                               ,y1: $Maybe.Just({frequency: 1.0,phase: 0,amplitude: 230,damping: 1.7e-6})
+                               ,y2: $Maybe.Just({frequency: 1.0,phase: 0,amplitude: 200,damping: 1.3e-6})}};
    var init = {ctor: "_Tuple2",_0: initialModel,_1: $Effects.none};
    var Model = F3(function (a,b,c) {    return {config: a,time: b,eff: c};});
    var fps = 1;
@@ -11212,7 +11207,7 @@ Elm.Main.make = function (_elm) {
            var p = _p2._0(def(c.y1));
            return {ctor: "_Tuple2",_0: _U.update(model,{config: _U.update(c,{y1: $Maybe.Just(p)})}),_1: $Effects.none};
          default: var c = model.config;
-           var p = _p2._0(def(c.y1));
+           var p = _p2._0(def(c.y2));
            return {ctor: "_Tuple2",_0: _U.update(model,{config: _U.update(c,{y2: $Maybe.Just(p)})}),_1: $Effects.none};}
    });
    var app = $StartApp.start({init: init,view: view,update: update,inputs: _U.list([A2($Signal.map,function (_p3) {    return Tick;},$Time.fps(fps))])});
