@@ -3,10 +3,12 @@ import Color exposing (..)
 import Effects exposing (Effects)
 import Graphics.Collage exposing (..)
 import Graphics.Element exposing (..)
+import History
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Http
+import Json.Decode as JD
 import Json.Encode as JE
 import StartApp
 import String
@@ -39,6 +41,7 @@ type alias Model =
   { config : Config
   , time : Float
   , animate : Bool
+  , updated : Bool
   , eff : Float
   }
 
@@ -48,7 +51,10 @@ app =
     { init = init
     , view = view
     , update = update
-    , inputs = [ Time.fps fps |> Signal.map (\_ -> Tick) ]
+    , inputs =
+      [ Time.fps fps |> Signal.map (always Tick)
+      , History.hash |> Signal.dropRepeats |> Signal.map Url
+      ]
     }
 
 
@@ -61,6 +67,7 @@ initialModel =
   { time = 0.0
   , eff = 0.0
   , animate = False
+  , updated = False
   , config =
     { resolution = 4
     , max = 1000
@@ -114,6 +121,17 @@ phaseAdd x y =
       z
 
 
+updateUrl : Config -> Effects Action
+updateUrl config =
+  configEncoder config
+    |> JE.encode 0
+    |> Http.uriEncode
+    |> \s -> "#" ++ s
+    |> History.replacePath
+    |> Effects.task
+    |> Effects.map (\_ -> Tick)
+
+
 update : Action -> Model -> ( Model, Effects Action )
 update action model =
   case action of
@@ -151,12 +169,32 @@ update action model =
     Stop ->
       ( { model | animate = False }, Effects.none )
 
+    Url s ->
+      if
+        model.updated
+      then
+        (model, Effects.none)
+      else
+        let
+          r =
+            Debug.log "url change" s
+            |> String.dropLeft 1 -- Remove leading '#'.
+            |> Http.uriDecode
+            |> JD.decodeString configDecoder
+        in
+          case r of
+            Ok v ->
+              ( { model | config = v, updated = True }, Effects.none )
+
+            Err e ->
+              ( model, Effects.none )
+
     X1 f ->
       let
         c = model.config
         p = f <| def c.x1
       in
-        ( { model | config = { c | x1 = Just p } }, Effects.none )
+        ( { model | config = { c | x1 = Just p } }, updateUrl c )
 
     X2 f ->
       let
@@ -179,10 +217,12 @@ update action model =
       in
         ( { model | config = { c | y2 = Just p } }, Effects.none )
 
+
 type Action
   = Tick
   | Start
   | Stop
+  | Url String
   | M (Config -> Config)
   | X1 (Params -> Params)
   | X2 (Params -> Params)
