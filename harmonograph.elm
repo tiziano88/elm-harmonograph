@@ -157,17 +157,14 @@ update action model =
       else
         (model, Effects.none)
 
-    M f ->
-      let
-        c = model.config
-      in
-        ( { model | config = f c }, Effects.none )
-
     Start ->
       ( { model | animate = True }, Effects.none )
 
     Stop ->
       ( { model | animate = False }, Effects.none )
+
+    SetConfig c ->
+      ( { model | config = c }, Effects.none )
 
     Url s ->
       if
@@ -189,31 +186,27 @@ update action model =
             Err e ->
               ( model, Effects.none )
 
-    X1 f ->
+    X1 p ->
       let
         c = model.config
-        p = f <| def c.x1
       in
         ( { model | config = { c | x1 = Just p } }, updateUrl c )
 
-    X2 f ->
+    X2 p ->
       let
         c = model.config
-        p = f <| def c.x2
       in
         ( { model | config = { c | x2 = Just p } }, Effects.none )
 
-    Y1 f ->
+    Y1 p ->
       let
         c = model.config
-        p = f <| def c.y1
       in
         ( { model | config = { c | y1 = Just p } }, Effects.none )
 
-    Y2 f ->
+    Y2 p ->
       let
         c = model.config
-        p = f <| def c.y2
       in
         ( { model | config = { c | y2 = Just p } }, Effects.none )
 
@@ -223,11 +216,11 @@ type Action
   | Start
   | Stop
   | Url String
-  | M (Config -> Config)
-  | X1 (Params -> Params)
-  | X2 (Params -> Params)
-  | Y1 (Params -> Params)
-  | Y2 (Params -> Params)
+  | SetConfig Config
+  | X1 Params
+  | X2 Params
+  | Y1 Params
+  | Y2 Params
 
 view address model =
   div
@@ -266,14 +259,14 @@ paramControls address model =
       , min = 0.0
       , max = 10.0
       , step = 1.0
-      , update = \x -> Signal.message address (M (\p -> { p | resolution = round x }))
+      , update = \x -> Signal.message address (SetConfig <| let c = model.config in { c | resolution = round x })
       } (toFloat model.config.resolution)
     , slider
       { title = "samples"
       , min = 100.0
       , max = 10000.0
       , step = 100.0
-      , update = \x -> Signal.message address (M (\p -> { p | max = round x }))
+      , update = \x -> Signal.message address (SetConfig <| let c = model.config in { c | max = round x })
       } (toFloat model.config.max)
     , Html.text "x1"
     , controlBlock (Signal.forwardTo address X1) (def model.config.x1)
@@ -292,7 +285,7 @@ paramControls address model =
 (=>) = (,)
 
 
-controlBlock : Signal.Address (Params -> Params) -> Params -> Html
+controlBlock : Signal.Address Params -> Params -> Html
 controlBlock address p =
   div []
     [ slider
@@ -300,28 +293,28 @@ controlBlock address p =
       , min = 0.0
       , max = 1000.0
       , step = 1.0
-      , update = \x -> Signal.message address (\p -> { p | amplitude = x })
+      , update = \x -> Signal.message address ({ p | amplitude = x })
       } p.amplitude
     , slider
       { title = "phase"
       , min = 0.0
       , max = maxPhase
       , step = 0.001
-      , update = \x -> Signal.message address (\p -> { p | phase = x })
+      , update = \x -> Signal.message address ({ p | phase = x })
       } p.phase
     , slider
       { title = "frequency"
       , min = 0.0
       , max = 10.0
       , step = 0.01
-      , update = \x -> Signal.message address (\p -> { p | frequency = x })
+      , update = \x -> Signal.message address ({ p | frequency = x })
       } p.frequency
     , slider
       { title = "damping"
       , min = 0.0
       , max = 0.003
       , step = 0.000001
-      , update = \x -> Signal.message address (\p -> { p | damping = x })
+      , update = \x -> Signal.message address ({ p | damping = x })
       } p.damping
     ]
 

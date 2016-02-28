@@ -11237,7 +11237,7 @@ Elm.Main.make = function (_elm) {
    var Y1 = function (a) {    return {ctor: "Y1",_0: a};};
    var X2 = function (a) {    return {ctor: "X2",_0: a};};
    var X1 = function (a) {    return {ctor: "X1",_0: a};};
-   var M = function (a) {    return {ctor: "M",_0: a};};
+   var SetConfig = function (a) {    return {ctor: "SetConfig",_0: a};};
    var Url = function (a) {    return {ctor: "Url",_0: a};};
    var Stop = {ctor: "Stop"};
    var Start = {ctor: "Start"};
@@ -11277,10 +11277,9 @@ Elm.Main.make = function (_elm) {
                  ,y2: $Maybe.Just(_U.update(y2,{phase: A2(phaseAdd,y2.phase,1.0e-2)}))});
                  return {ctor: "_Tuple2",_0: _U.update(model,{config: c1}),_1: $Effects.none};
               } else return {ctor: "_Tuple2",_0: model,_1: $Effects.none};
-         case "M": var c = model.config;
-           return {ctor: "_Tuple2",_0: _U.update(model,{config: _p3._0(c)}),_1: $Effects.none};
          case "Start": return {ctor: "_Tuple2",_0: _U.update(model,{animate: true}),_1: $Effects.none};
          case "Stop": return {ctor: "_Tuple2",_0: _U.update(model,{animate: false}),_1: $Effects.none};
+         case "SetConfig": return {ctor: "_Tuple2",_0: _U.update(model,{config: _p3._0}),_1: $Effects.none};
          case "Url": if (model.updated) return {ctor: "_Tuple2",_0: model,_1: $Effects.none}; else {
                  var r = A2($Json$Decode.decodeString,
                  $Proto$Harmonograph.configDecoder,
@@ -11293,56 +11292,28 @@ Elm.Main.make = function (_elm) {
                     }
               }
          case "X1": var c = model.config;
-           var p = _p3._0(def(c.x1));
-           return {ctor: "_Tuple2",_0: _U.update(model,{config: _U.update(c,{x1: $Maybe.Just(p)})}),_1: updateUrl(c)};
+           return {ctor: "_Tuple2",_0: _U.update(model,{config: _U.update(c,{x1: $Maybe.Just(_p3._0)})}),_1: updateUrl(c)};
          case "X2": var c = model.config;
-           var p = _p3._0(def(c.x2));
-           return {ctor: "_Tuple2",_0: _U.update(model,{config: _U.update(c,{x2: $Maybe.Just(p)})}),_1: $Effects.none};
+           return {ctor: "_Tuple2",_0: _U.update(model,{config: _U.update(c,{x2: $Maybe.Just(_p3._0)})}),_1: $Effects.none};
          case "Y1": var c = model.config;
-           var p = _p3._0(def(c.y1));
-           return {ctor: "_Tuple2",_0: _U.update(model,{config: _U.update(c,{y1: $Maybe.Just(p)})}),_1: $Effects.none};
+           return {ctor: "_Tuple2",_0: _U.update(model,{config: _U.update(c,{y1: $Maybe.Just(_p3._0)})}),_1: $Effects.none};
          default: var c = model.config;
-           var p = _p3._0(def(c.y2));
-           return {ctor: "_Tuple2",_0: _U.update(model,{config: _U.update(c,{y2: $Maybe.Just(p)})}),_1: $Effects.none};}
+           return {ctor: "_Tuple2",_0: _U.update(model,{config: _U.update(c,{y2: $Maybe.Just(_p3._0)})}),_1: $Effects.none};}
    });
    var controlBlock = F2(function (address,p) {
       return A2($Html.div,
       _U.list([]),
       _U.list([A2(slider,
-              {title: "amplitude"
-              ,min: 0.0
-              ,max: 1000.0
-              ,step: 1.0
-              ,update: function (x) {
-                 return A2($Signal.message,address,function (p) {    return _U.update(p,{amplitude: x});});
-              }},
+              {title: "amplitude",min: 0.0,max: 1000.0,step: 1.0,update: function (x) {    return A2($Signal.message,address,_U.update(p,{amplitude: x}));}},
               p.amplitude)
               ,A2(slider,
-              {title: "phase"
-              ,min: 0.0
-              ,max: maxPhase
-              ,step: 1.0e-3
-              ,update: function (x) {
-                 return A2($Signal.message,address,function (p) {    return _U.update(p,{phase: x});});
-              }},
+              {title: "phase",min: 0.0,max: maxPhase,step: 1.0e-3,update: function (x) {    return A2($Signal.message,address,_U.update(p,{phase: x}));}},
               p.phase)
               ,A2(slider,
-              {title: "frequency"
-              ,min: 0.0
-              ,max: 10.0
-              ,step: 1.0e-2
-              ,update: function (x) {
-                 return A2($Signal.message,address,function (p) {    return _U.update(p,{frequency: x});});
-              }},
+              {title: "frequency",min: 0.0,max: 10.0,step: 1.0e-2,update: function (x) {    return A2($Signal.message,address,_U.update(p,{frequency: x}));}},
               p.frequency)
               ,A2(slider,
-              {title: "damping"
-              ,min: 0.0
-              ,max: 3.0e-3
-              ,step: 1.0e-6
-              ,update: function (x) {
-                 return A2($Signal.message,address,function (p) {    return _U.update(p,{damping: x});});
-              }},
+              {title: "damping",min: 0.0,max: 3.0e-3,step: 1.0e-6,update: function (x) {    return A2($Signal.message,address,_U.update(p,{damping: x}));}},
               p.damping)]));
    });
    var paramControls = F2(function (address,model) {
@@ -11354,7 +11325,7 @@ Elm.Main.make = function (_elm) {
               ,max: 10.0
               ,step: 1.0
               ,update: function (x) {
-                 return A2($Signal.message,address,M(function (p) {    return _U.update(p,{resolution: $Basics.round(x)});}));
+                 return A2($Signal.message,address,SetConfig(function () {    var c = model.config;return _U.update(c,{resolution: $Basics.round(x)});}()));
               }},
               $Basics.toFloat(model.config.resolution))
               ,A2(slider,
@@ -11363,7 +11334,7 @@ Elm.Main.make = function (_elm) {
               ,max: 10000.0
               ,step: 100.0
               ,update: function (x) {
-                 return A2($Signal.message,address,M(function (p) {    return _U.update(p,{max: $Basics.round(x)});}));
+                 return A2($Signal.message,address,SetConfig(function () {    var c = model.config;return _U.update(c,{max: $Basics.round(x)});}()));
               }},
               $Basics.toFloat(model.config.max))
               ,$Html.text("x1")
@@ -11408,7 +11379,7 @@ Elm.Main.make = function (_elm) {
                              ,Start: Start
                              ,Stop: Stop
                              ,Url: Url
-                             ,M: M
+                             ,SetConfig: SetConfig
                              ,X1: X1
                              ,X2: X2
                              ,Y1: Y1
