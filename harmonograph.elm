@@ -1,6 +1,7 @@
 import Array
 import Color exposing (..)
 import Effects exposing (Effects)
+import Focus exposing ((=>))
 import Graphics.Collage exposing (..)
 import Graphics.Element exposing (..)
 import History
@@ -132,6 +133,39 @@ updateUrl config =
     |> Effects.map (\_ -> Tick)
 
 
+-- Experimental Focus stuff.
+
+con : Focus.Focus Model Config
+con =
+  Focus.create
+    (\m -> m.config)
+    (\f m -> {m | config = f m.config})
+
+x1 : Focus.Focus Config (Maybe Params)
+x1 =
+  Focus.create
+    (\c -> c.x1)
+    (\f c -> {c | x1 = f c.x1})
+
+x2 : Focus.Focus Config (Maybe Params)
+x2 =
+  Focus.create
+    (\c -> c.x2)
+    (\f c -> {c | x2 = f c.x2})
+
+y1 : Focus.Focus Config (Maybe Params)
+y1 =
+  Focus.create
+    (\c -> c.y1)
+    (\f c -> {c | y1 = f c.y1})
+
+y2 : Focus.Focus Config (Maybe Params)
+y2 =
+  Focus.create
+    (\c -> c.y2)
+    (\f c -> {c | y2 = f c.y2})
+
+
 update : Action -> Model -> ( Model, Effects Action )
 update action model =
   case action of
@@ -190,25 +224,26 @@ update action model =
       let
         c = model.config
       in
-        ( { model | config = { c | x1 = Just p } }, updateUrl c )
+        -- Experimental Focus stuff.
+        ( Focus.set (con => x1) (Just p) model, updateUrl c )
 
     X2 p ->
       let
         c = model.config
       in
-        ( { model | config = { c | x2 = Just p } }, Effects.none )
+        ( { model | config = { c | x2 = Just p } }, updateUrl c )
 
     Y1 p ->
       let
         c = model.config
       in
-        ( { model | config = { c | y1 = Just p } }, Effects.none )
+        ( { model | config = { c | y1 = Just p } }, updateUrl c )
 
     Y2 p ->
       let
         c = model.config
       in
-        ( { model | config = { c | y2 = Just p } }, Effects.none )
+        ( { model | config = { c | y2 = Just p } }, updateUrl c )
 
 
 type Action
@@ -225,7 +260,7 @@ type Action
 view address model =
   div
     [ style
-      [ "display" => "flex"
+      [ "display" ==> "flex"
       ]
     ]
     [ div []
@@ -241,8 +276,8 @@ dataWidget address model =
   div []
     [ textarea
       [ style
-        [ "width" => "30em"
-        , "height" => "60em"
+        [ "width" ==> "30em"
+        , "height" ==> "60em"
         ]
       , value <| JE.encode 2 <| configEncoder model.config
       ] []
@@ -281,8 +316,8 @@ paramControls address model =
     ]
 
 
-(=>) : String -> String -> (String, String)
-(=>) = (,)
+(==>) : String -> String -> (String, String)
+(==>) = (,)
 
 
 controlBlock : Signal.Address Params -> Params -> Html
@@ -332,13 +367,13 @@ slider : SliderAttributes -> Float -> Html
 slider attr v =
   div
     [ style
-      [ "width" => "40em"
+      [ "width" ==> "40em"
       ]
     ]
     [ span
       [ style
-        [ "display" => "inline-block"
-        , "width" => "7em"
+        [ "display" ==> "inline-block"
+        , "width" ==> "7em"
         ]
       ]
       [ Html.text attr.title
@@ -351,13 +386,13 @@ slider attr v =
       , Html.Attributes.value <| toString v
       , on "input" targetValue (parseFloat >> attr.update)
       , style
-        [ "width" => "30em"
+        [ "width" ==> "30em"
         ]
       ] []
     , span
       [ style
-        [ "display" => "inline-block"
-        , "width" => "7em"
+        [ "display" ==> "inline-block"
+        , "width" ==> "7em"
         ]
       ]
       [ Html.text <| toString v

@@ -11031,6 +11031,34 @@ Elm.Http.make = function (_elm) {
                              ,BadResponse: BadResponse
                              ,RawTimeout: RawTimeout
                              ,RawNetworkError: RawNetworkError};
+};Elm.Focus = Elm.Focus || {};
+Elm.Focus.make = function (_elm) {
+   "use strict";
+   _elm.Focus = _elm.Focus || {};
+   if (_elm.Focus.values) return _elm.Focus.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var _op = {};
+   var update = F3(function (_p0,f,big) {    var _p1 = _p0;return A2(_p1._0.update,f,big);});
+   var set = F3(function (_p2,small,big) {    var _p3 = _p2;return A2(_p3._0.update,$Basics.always(small),big);});
+   var get = F2(function (_p4,big) {    var _p5 = _p4;return _p5._0.get(big);});
+   var Focus = function (a) {    return {ctor: "Focus",_0: a};};
+   var create = F2(function (get,update) {    return Focus({get: get,update: update});});
+   _op["=>"] = F2(function (_p7,_p6) {
+      var _p8 = _p7;
+      var _p11 = _p8._0;
+      var _p9 = _p6;
+      var _p10 = _p9._0;
+      var update = F2(function (f,big) {    return A2(_p11.update,_p10.update(f),big);});
+      var get = function (big) {    return _p10.get(_p11.get(big));};
+      return Focus({get: get,update: update});
+   });
+   return _elm.Focus.values = {_op: _op,get: get,set: set,update: update,create: create};
 };Elm.StartApp = Elm.StartApp || {};
 Elm.StartApp.make = function (_elm) {
    "use strict";
@@ -11164,6 +11192,7 @@ Elm.Main.make = function (_elm) {
    $Color = Elm.Color.make(_elm),
    $Debug = Elm.Debug.make(_elm),
    $Effects = Elm.Effects.make(_elm),
+   $Focus = Elm.Focus.make(_elm),
    $Graphics$Collage = Elm.Graphics.Collage.make(_elm),
    $History = Elm.History.make(_elm),
    $Html = Elm.Html.make(_elm),
@@ -11204,12 +11233,12 @@ Elm.Main.make = function (_elm) {
    var trace = function (model) {    return A2($Graphics$Collage.traced,$Graphics$Collage.solid($Color.blue),$Graphics$Collage.path(values(model)));};
    var parseFloat = function (s) {    return A2($Result.withDefault,0,$String.toFloat(s));};
    var SliderAttributes = F5(function (a,b,c,d,e) {    return {title: a,min: b,max: c,step: d,update: e};});
-   _op["=>"] = F2(function (v0,v1) {    return {ctor: "_Tuple2",_0: v0,_1: v1};});
+   _op["==>"] = F2(function (v0,v1) {    return {ctor: "_Tuple2",_0: v0,_1: v1};});
    var slider = F2(function (attr,v) {
       return A2($Html.div,
-      _U.list([$Html$Attributes.style(_U.list([A2(_op["=>"],"width","40em")]))]),
+      _U.list([$Html$Attributes.style(_U.list([A2(_op["==>"],"width","40em")]))]),
       _U.list([A2($Html.span,
-              _U.list([$Html$Attributes.style(_U.list([A2(_op["=>"],"display","inline-block"),A2(_op["=>"],"width","7em")]))]),
+              _U.list([$Html$Attributes.style(_U.list([A2(_op["==>"],"display","inline-block"),A2(_op["==>"],"width","7em")]))]),
               _U.list([$Html.text(attr.title)]))
               ,A2($Html.input,
               _U.list([$Html$Attributes.type$("range")
@@ -11218,17 +11247,17 @@ Elm.Main.make = function (_elm) {
                       ,$Html$Attributes.step($Basics.toString(attr.step))
                       ,$Html$Attributes.value($Basics.toString(v))
                       ,A3($Html$Events.on,"input",$Html$Events.targetValue,function (_p1) {    return attr.update(parseFloat(_p1));})
-                      ,$Html$Attributes.style(_U.list([A2(_op["=>"],"width","30em")]))]),
+                      ,$Html$Attributes.style(_U.list([A2(_op["==>"],"width","30em")]))]),
               _U.list([]))
               ,A2($Html.span,
-              _U.list([$Html$Attributes.style(_U.list([A2(_op["=>"],"display","inline-block"),A2(_op["=>"],"width","7em")]))]),
+              _U.list([$Html$Attributes.style(_U.list([A2(_op["==>"],"display","inline-block"),A2(_op["==>"],"width","7em")]))]),
               _U.list([$Html.text($Basics.toString(v))]))]));
    });
    var dataWidget = F2(function (address,model) {
       return A2($Html.div,
       _U.list([]),
       _U.list([A2($Html.textarea,
-              _U.list([$Html$Attributes.style(_U.list([A2(_op["=>"],"width","30em"),A2(_op["=>"],"height","60em")]))
+              _U.list([$Html$Attributes.style(_U.list([A2(_op["==>"],"width","30em"),A2(_op["==>"],"height","60em")]))
                       ,$Html$Attributes.value(A2($Json$Encode.encode,2,$Proto$Harmonograph.configEncoder(model.config)))]),
               _U.list([]))
               ,A2($Html.button,_U.list([]),_U.list([$Html.text("Load")]))]));
@@ -11242,6 +11271,11 @@ Elm.Main.make = function (_elm) {
    var Stop = {ctor: "Stop"};
    var Start = {ctor: "Start"};
    var Tick = {ctor: "Tick"};
+   var y2 = A2($Focus.create,function (c) {    return c.y2;},F2(function (f,c) {    return _U.update(c,{y2: f(c.y2)});}));
+   var y1 = A2($Focus.create,function (c) {    return c.y1;},F2(function (f,c) {    return _U.update(c,{y1: f(c.y1)});}));
+   var x2 = A2($Focus.create,function (c) {    return c.x2;},F2(function (f,c) {    return _U.update(c,{x2: f(c.x2)});}));
+   var x1 = A2($Focus.create,function (c) {    return c.x1;},F2(function (f,c) {    return _U.update(c,{x1: f(c.x1)});}));
+   var con = A2($Focus.create,function (m) {    return m.config;},F2(function (f,m) {    return _U.update(m,{config: f(m.config)});}));
    var updateUrl = function (config) {
       return function (s) {
          return A2($Effects.map,function (_p2) {    return Tick;},$Effects.task($History.replacePath(A2($Basics._op["++"],"#",s))));
@@ -11292,13 +11326,13 @@ Elm.Main.make = function (_elm) {
                     }
               }
          case "X1": var c = model.config;
-           return {ctor: "_Tuple2",_0: _U.update(model,{config: _U.update(c,{x1: $Maybe.Just(_p3._0)})}),_1: updateUrl(c)};
+           return {ctor: "_Tuple2",_0: A3($Focus.set,A2($Focus._op["=>"],con,x1),$Maybe.Just(_p3._0),model),_1: updateUrl(c)};
          case "X2": var c = model.config;
-           return {ctor: "_Tuple2",_0: _U.update(model,{config: _U.update(c,{x2: $Maybe.Just(_p3._0)})}),_1: $Effects.none};
+           return {ctor: "_Tuple2",_0: _U.update(model,{config: _U.update(c,{x2: $Maybe.Just(_p3._0)})}),_1: updateUrl(c)};
          case "Y1": var c = model.config;
-           return {ctor: "_Tuple2",_0: _U.update(model,{config: _U.update(c,{y1: $Maybe.Just(_p3._0)})}),_1: $Effects.none};
+           return {ctor: "_Tuple2",_0: _U.update(model,{config: _U.update(c,{y1: $Maybe.Just(_p3._0)})}),_1: updateUrl(c)};
          default: var c = model.config;
-           return {ctor: "_Tuple2",_0: _U.update(model,{config: _U.update(c,{y2: $Maybe.Just(_p3._0)})}),_1: $Effects.none};}
+           return {ctor: "_Tuple2",_0: _U.update(model,{config: _U.update(c,{y2: $Maybe.Just(_p3._0)})}),_1: updateUrl(c)};}
    });
    var controlBlock = F2(function (address,p) {
       return A2($Html.div,
@@ -11350,7 +11384,7 @@ Elm.Main.make = function (_elm) {
    });
    var view = F2(function (address,model) {
       return A2($Html.div,
-      _U.list([$Html$Attributes.style(_U.list([A2(_op["=>"],"display","flex")]))]),
+      _U.list([$Html$Attributes.style(_U.list([A2(_op["==>"],"display","flex")]))]),
       _U.list([A2($Html.div,_U.list([]),_U.list([$Html.fromElement(A3($Graphics$Collage.collage,1000,1000,_U.list([trace(model)])))]))
               ,A2(paramControls,address,model)
               ,A2(dataWidget,address,model)]));
@@ -11374,6 +11408,11 @@ Elm.Main.make = function (_elm) {
                              ,lfo: lfo
                              ,phaseAdd: phaseAdd
                              ,updateUrl: updateUrl
+                             ,con: con
+                             ,x1: x1
+                             ,x2: x2
+                             ,y1: y1
+                             ,y2: y2
                              ,update: update
                              ,Tick: Tick
                              ,Start: Start
