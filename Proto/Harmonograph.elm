@@ -5,12 +5,22 @@ import Json.Decode as JD exposing ((:=))
 import Json.Encode as JE
 
 
-optional : JD.Decoder a -> JD.Decoder (Maybe a)
-optional decoder =
+optionalDecoder : JD.Decoder a -> JD.Decoder (Maybe a)
+optionalDecoder decoder =
   JD.oneOf
     [ JD.map Just decoder
     , JD.succeed Nothing
     ]
+
+
+optionalFieldDecoder : JD.Decoder a -> String -> JD.Decoder (Maybe a)
+optionalFieldDecoder decoder name =
+  optionalDecoder (name := decoder)
+
+
+repeatedFieldDecoder : JD.Decoder a -> String -> JD.Decoder (List a)
+repeatedFieldDecoder decoder name =
+  JD.list (name := decoder)
 
 
 withDefault : a -> JD.Decoder a -> JD.Decoder a
@@ -21,33 +31,28 @@ withDefault default decoder =
     ]
 
 
-intField : String -> JD.Decoder Int
-intField name =
+intFieldDecoder : String -> JD.Decoder Int
+intFieldDecoder name =
   withDefault 0 (name := JD.int)
 
 
-floatField : String -> JD.Decoder Float
-floatField name =
+floatFieldDecoder : String -> JD.Decoder Float
+floatFieldDecoder name =
   withDefault 0.0 (name := JD.float)
 
 
-boolField : String -> JD.Decoder Bool
-boolField name =
+boolFieldDecoder : String -> JD.Decoder Bool
+boolFieldDecoder name =
   withDefault False (name := JD.bool)
 
 
-stringField : String -> JD.Decoder String
-stringField name =
+stringFieldDecoder : String -> JD.Decoder String
+stringFieldDecoder name =
   withDefault "" (name := JD.string)
 
 
-messageField : JD.Decoder a -> String -> JD.Decoder (Maybe a)
-messageField decoder name =
-  optional (name := decoder)
-
-
-enumField : JD.Decoder a -> String -> JD.Decoder a
-enumField decoder name =
+enumFieldDecoder : JD.Decoder a -> String -> JD.Decoder a
+enumFieldDecoder decoder name =
   (name := decoder)
 
 
@@ -61,19 +66,24 @@ optionalEncoder encoder v =
       JE.null
 
 
+repeatedFieldEncoder : (a -> JE.Value) -> List a -> JE.Value
+repeatedFieldEncoder encoder v =
+  JE.list <| List.map encoder v
+
+
 type alias Param =
-  { value : Float
-  , frequency : Float
-  , amplitude : Float
+  { value : Float -- 1
+  , frequency : Float -- 2
+  , amplitude : Float -- 3
   }
 
 
 paramDecoder : JD.Decoder Param
 paramDecoder =
   JD.object3 Param
-    (floatField "value")
-    (floatField "frequency")
-    (floatField "amplitude")
+    (floatFieldDecoder "value")
+    (floatFieldDecoder "frequency")
+    (floatFieldDecoder "amplitude")
 
 
 paramEncoder : Param -> JE.Value
@@ -86,20 +96,20 @@ paramEncoder v =
 
 
 type alias Params =
-  { frequency : Float
-  , phase : Float
-  , amplitude : Float
-  , damping : Float
+  { frequency : Float -- 1
+  , phase : Float -- 2
+  , amplitude : Float -- 3
+  , damping : Float -- 4
   }
 
 
 paramsDecoder : JD.Decoder Params
 paramsDecoder =
   JD.object4 Params
-    (floatField "frequency")
-    (floatField "phase")
-    (floatField "amplitude")
-    (floatField "damping")
+    (floatFieldDecoder "frequency")
+    (floatFieldDecoder "phase")
+    (floatFieldDecoder "amplitude")
+    (floatFieldDecoder "damping")
 
 
 paramsEncoder : Params -> JE.Value
@@ -113,24 +123,26 @@ paramsEncoder v =
 
 
 type alias Config =
-  { resolution : Int
-  , max : Int
-  , x1 : Maybe Params
-  , x2 : Maybe Params
-  , y1 : Maybe Params
-  , y2 : Maybe Params
+  { resolution : Int -- 1
+  , max : Int -- 2
+  , x1 : Maybe Params -- 3
+  , x2 : Maybe Params -- 4
+  , y1 : Maybe Params -- 5
+  , y2 : Maybe Params -- 6
+  , x : List Params -- 7
   }
 
 
 configDecoder : JD.Decoder Config
 configDecoder =
-  JD.object6 Config
-    (intField "resolution")
-    (intField "max")
-    (messageField paramsDecoder "x1")
-    (messageField paramsDecoder "x2")
-    (messageField paramsDecoder "y1")
-    (messageField paramsDecoder "y2")
+  JD.object7 Config
+    (intFieldDecoder "resolution")
+    (intFieldDecoder "max")
+    (optionalFieldDecoder paramsDecoder "x1")
+    (optionalFieldDecoder paramsDecoder "x2")
+    (optionalFieldDecoder paramsDecoder "y1")
+    (optionalFieldDecoder paramsDecoder "y2")
+    (repeatedFieldDecoder paramsDecoder "x")
 
 
 configEncoder : Config -> JE.Value
@@ -142,6 +154,7 @@ configEncoder v =
     , ("x2", optionalEncoder paramsEncoder v.x2)
     , ("y1", optionalEncoder paramsEncoder v.y1)
     , ("y2", optionalEncoder paramsEncoder v.y2)
+    , ("x", repeatedFieldEncoder paramsEncoder v.x)
     ]
 
 

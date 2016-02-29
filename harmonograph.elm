@@ -100,6 +100,7 @@ initialModel =
         , amplitude = 200
         , damping = 0.00013
         }
+    , x = []
     }
   }
 
@@ -223,9 +224,9 @@ update action model =
     X1 p ->
       let
         c = model.config
+        c1 = { c | x1 = Just p }
       in
-        -- Experimental Focus stuff.
-        ( Focus.set (con => x1) (Just p) model, updateUrl c )
+        ( { model | config = c1 }, updateUrl c1 )
 
     X2 p ->
       let

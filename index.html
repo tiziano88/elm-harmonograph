@@ -11114,7 +11114,7 @@ Elm.Proto.Harmonograph.make = function (_elm) {
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm);
    var _op = {};
-   var Config = F6(function (a,b,c,d,e,f) {    return {resolution: a,max: b,x1: c,x2: d,y1: e,y2: f};});
+   var Config = F7(function (a,b,c,d,e,f,g) {    return {resolution: a,max: b,x1: c,x2: d,y1: e,y2: f,x: g};});
    var paramsEncoder = function (v) {
       return $Json$Encode.object(_U.list([{ctor: "_Tuple2",_0: "frequency",_1: $Json$Encode.$float(v.frequency)}
                                          ,{ctor: "_Tuple2",_0: "phase",_1: $Json$Encode.$float(v.phase)}
@@ -11128,6 +11128,7 @@ Elm.Proto.Harmonograph.make = function (_elm) {
                                          ,{ctor: "_Tuple2",_0: "amplitude",_1: $Json$Encode.$float(v.amplitude)}]));
    };
    var Param = F3(function (a,b,c) {    return {value: a,frequency: b,amplitude: c};});
+   var repeatedFieldEncoder = F2(function (encoder,v) {    return $Json$Encode.list(A2($List.map,encoder,v));});
    var optionalEncoder = F2(function (encoder,v) {
       var _p0 = v;
       if (_p0.ctor === "Just") {
@@ -11142,36 +11143,48 @@ Elm.Proto.Harmonograph.make = function (_elm) {
                                          ,{ctor: "_Tuple2",_0: "x1",_1: A2(optionalEncoder,paramsEncoder,v.x1)}
                                          ,{ctor: "_Tuple2",_0: "x2",_1: A2(optionalEncoder,paramsEncoder,v.x2)}
                                          ,{ctor: "_Tuple2",_0: "y1",_1: A2(optionalEncoder,paramsEncoder,v.y1)}
-                                         ,{ctor: "_Tuple2",_0: "y2",_1: A2(optionalEncoder,paramsEncoder,v.y2)}]));
+                                         ,{ctor: "_Tuple2",_0: "y2",_1: A2(optionalEncoder,paramsEncoder,v.y2)}
+                                         ,{ctor: "_Tuple2",_0: "x",_1: A2(repeatedFieldEncoder,paramsEncoder,v.x)}]));
    };
-   var enumField = F2(function (decoder,name) {    return A2($Json$Decode._op[":="],name,decoder);});
+   var enumFieldDecoder = F2(function (decoder,name) {    return A2($Json$Decode._op[":="],name,decoder);});
    var withDefault = F2(function ($default,decoder) {    return $Json$Decode.oneOf(_U.list([decoder,$Json$Decode.succeed($default)]));});
-   var intField = function (name) {    return A2(withDefault,0,A2($Json$Decode._op[":="],name,$Json$Decode.$int));};
-   var floatField = function (name) {    return A2(withDefault,0.0,A2($Json$Decode._op[":="],name,$Json$Decode.$float));};
-   var paramDecoder = A4($Json$Decode.object3,Param,floatField("value"),floatField("frequency"),floatField("amplitude"));
-   var paramsDecoder = A5($Json$Decode.object4,Params,floatField("frequency"),floatField("phase"),floatField("amplitude"),floatField("damping"));
-   var boolField = function (name) {    return A2(withDefault,false,A2($Json$Decode._op[":="],name,$Json$Decode.bool));};
-   var stringField = function (name) {    return A2(withDefault,"",A2($Json$Decode._op[":="],name,$Json$Decode.string));};
-   var optional = function (decoder) {    return $Json$Decode.oneOf(_U.list([A2($Json$Decode.map,$Maybe.Just,decoder),$Json$Decode.succeed($Maybe.Nothing)]));};
-   var messageField = F2(function (decoder,name) {    return optional(A2($Json$Decode._op[":="],name,decoder));});
-   var configDecoder = A7($Json$Decode.object6,
+   var intFieldDecoder = function (name) {    return A2(withDefault,0,A2($Json$Decode._op[":="],name,$Json$Decode.$int));};
+   var floatFieldDecoder = function (name) {    return A2(withDefault,0.0,A2($Json$Decode._op[":="],name,$Json$Decode.$float));};
+   var paramDecoder = A4($Json$Decode.object3,Param,floatFieldDecoder("value"),floatFieldDecoder("frequency"),floatFieldDecoder("amplitude"));
+   var paramsDecoder = A5($Json$Decode.object4,
+   Params,
+   floatFieldDecoder("frequency"),
+   floatFieldDecoder("phase"),
+   floatFieldDecoder("amplitude"),
+   floatFieldDecoder("damping"));
+   var boolFieldDecoder = function (name) {    return A2(withDefault,false,A2($Json$Decode._op[":="],name,$Json$Decode.bool));};
+   var stringFieldDecoder = function (name) {    return A2(withDefault,"",A2($Json$Decode._op[":="],name,$Json$Decode.string));};
+   var repeatedFieldDecoder = F2(function (decoder,name) {    return $Json$Decode.list(A2($Json$Decode._op[":="],name,decoder));});
+   var optionalDecoder = function (decoder) {
+      return $Json$Decode.oneOf(_U.list([A2($Json$Decode.map,$Maybe.Just,decoder),$Json$Decode.succeed($Maybe.Nothing)]));
+   };
+   var optionalFieldDecoder = F2(function (decoder,name) {    return optionalDecoder(A2($Json$Decode._op[":="],name,decoder));});
+   var configDecoder = A8($Json$Decode.object7,
    Config,
-   intField("resolution"),
-   intField("max"),
-   A2(messageField,paramsDecoder,"x1"),
-   A2(messageField,paramsDecoder,"x2"),
-   A2(messageField,paramsDecoder,"y1"),
-   A2(messageField,paramsDecoder,"y2"));
+   intFieldDecoder("resolution"),
+   intFieldDecoder("max"),
+   A2(optionalFieldDecoder,paramsDecoder,"x1"),
+   A2(optionalFieldDecoder,paramsDecoder,"x2"),
+   A2(optionalFieldDecoder,paramsDecoder,"y1"),
+   A2(optionalFieldDecoder,paramsDecoder,"y2"),
+   A2(repeatedFieldDecoder,paramsDecoder,"x"));
    return _elm.Proto.Harmonograph.values = {_op: _op
-                                           ,optional: optional
+                                           ,optionalDecoder: optionalDecoder
+                                           ,optionalFieldDecoder: optionalFieldDecoder
+                                           ,repeatedFieldDecoder: repeatedFieldDecoder
                                            ,withDefault: withDefault
-                                           ,intField: intField
-                                           ,floatField: floatField
-                                           ,boolField: boolField
-                                           ,stringField: stringField
-                                           ,messageField: messageField
-                                           ,enumField: enumField
+                                           ,intFieldDecoder: intFieldDecoder
+                                           ,floatFieldDecoder: floatFieldDecoder
+                                           ,boolFieldDecoder: boolFieldDecoder
+                                           ,stringFieldDecoder: stringFieldDecoder
+                                           ,enumFieldDecoder: enumFieldDecoder
                                            ,optionalEncoder: optionalEncoder
+                                           ,repeatedFieldEncoder: repeatedFieldEncoder
                                            ,Param: Param
                                            ,paramDecoder: paramDecoder
                                            ,paramEncoder: paramEncoder
@@ -11290,7 +11303,8 @@ Elm.Main.make = function (_elm) {
                                ,x1: $Maybe.Just({frequency: 0.4,phase: 0,amplitude: 200,damping: 2.0e-3})
                                ,x2: $Maybe.Just({frequency: 0.8,phase: 0,amplitude: 200,damping: 1.2e-4})
                                ,y1: $Maybe.Just({frequency: 0.3,phase: 0,amplitude: 230,damping: 1.7e-4})
-                               ,y2: $Maybe.Just({frequency: 0.4,phase: 0,amplitude: 200,damping: 1.3e-4})}};
+                               ,y2: $Maybe.Just({frequency: 0.4,phase: 0,amplitude: 200,damping: 1.3e-4})
+                               ,x: _U.list([])}};
    var init = {ctor: "_Tuple2",_0: initialModel,_1: $Effects.none};
    var Model = F5(function (a,b,c,d,e) {    return {config: a,time: b,animate: c,updated: d,eff: e};});
    var maxPhase = 2 * $Basics.pi;
@@ -11326,7 +11340,8 @@ Elm.Main.make = function (_elm) {
                     }
               }
          case "X1": var c = model.config;
-           return {ctor: "_Tuple2",_0: A3($Focus.set,A2($Focus._op["=>"],con,x1),$Maybe.Just(_p3._0),model),_1: updateUrl(c)};
+           var c1 = _U.update(c,{x1: $Maybe.Just(_p3._0)});
+           return {ctor: "_Tuple2",_0: _U.update(model,{config: c1}),_1: updateUrl(c1)};
          case "X2": var c = model.config;
            return {ctor: "_Tuple2",_0: _U.update(model,{config: _U.update(c,{x2: $Maybe.Just(_p3._0)})}),_1: updateUrl(c)};
          case "Y1": var c = model.config;

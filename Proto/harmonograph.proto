@@ -21,4 +21,6 @@ message Config {
   Params x2 = 4;
   Params y1 = 5;
   Params y2 = 6;
+
+  repeated Params x = 7;
 }
