@@ -43,6 +43,8 @@ type alias Model =
   , time : Float
   , animate : Bool
   , updated : Bool
+  , startColor : String
+  , endColor : String
   , eff : Float
   }
 
@@ -69,6 +71,8 @@ initialModel =
   , eff = 0.0
   , animate = False
   , updated = False
+  , startColor = "red"
+  , endColor = "blue"
   , config =
     { resolution = 4
     , max = 1000
@@ -100,7 +104,25 @@ initialModel =
         , amplitude = 200
         , damping = 0.00013
         }
-    , x = []
+    , x =
+        [ { frequency = 0.1
+          , phase = 0
+          , amplitude = 111
+          , damping = 0.001
+          }
+        , { frequency = 0.2
+          , phase = 0
+          , amplitude = 222
+          , damping = 0.002
+          }
+        ]
+    , y =
+        [ { frequency = 0.1
+          , phase = 0
+          , amplitude = 111
+          , damping = 0.001
+          }
+        ]
     }
   }
 
@@ -167,6 +189,20 @@ y2 =
     (\f c -> {c | y2 = f c.y2})
 
 
+type Action
+  = Tick
+  | Start
+  | Stop
+  | Url String
+  | SetConfig Config
+  | SetStartColor String
+  | SetEndColor String
+  | X1 Params
+  | X2 Params
+  | Y1 Params
+  | Y2 Params
+
+
 update : Action -> Model -> ( Model, Effects Action )
 update action model =
   case action of
@@ -221,6 +257,12 @@ update action model =
             Err e ->
               ( model, Effects.none )
 
+    SetStartColor c ->
+      ( { model | startColor = c }, Effects.none )
+
+    SetEndColor c ->
+      ( { model | endColor = c }, Effects.none )
+
     X1 p ->
       let
         c = model.config
@@ -246,17 +288,6 @@ update action model =
       in
         ( { model | config = { c | y2 = Just p } }, updateUrl c )
 
-
-type Action
-  = Tick
-  | Start
-  | Stop
-  | Url String
-  | SetConfig Config
-  | X1 Params
-  | X2 Params
-  | Y1 Params
-  | Y2 Params
 
 view address model =
   div
@@ -304,6 +335,10 @@ paramControls address model =
       , step = 100.0
       , update = \x -> Signal.message address (SetConfig <| let c = model.config in { c | max = round x })
       } (toFloat model.config.max)
+    , colorPicker (Signal.forwardTo address SetStartColor)
+    , Html.text model.startColor
+    , colorPicker (Signal.forwardTo address SetEndColor)
+    , Html.text model.endColor
     , Html.text "x1"
     , controlBlock (Signal.forwardTo address X1) (def model.config.x1)
     , Html.text "x2"
@@ -353,6 +388,17 @@ controlBlock address p =
       , update = \x -> Signal.message address ({ p | damping = x })
       } p.damping
     ]
+
+
+colorPicker : Signal.Address String -> Html
+colorPicker address =
+  input
+    [ type' "color"
+    , on "input" targetValue (Signal.message address)
+    , style
+      [ "width" ==> "30em"
+      ]
+    ] []
 
 
 type alias SliderAttributes =

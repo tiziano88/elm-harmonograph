@@ -130,12 +130,13 @@ type alias Config =
   , y1 : Maybe Params -- 5
   , y2 : Maybe Params -- 6
   , x : List Params -- 7
+  , y : List Params -- 8
   }
 
 
 configDecoder : JD.Decoder Config
 configDecoder =
-  JD.object7 Config
+  JD.object8 Config
     (intFieldDecoder "resolution")
     (intFieldDecoder "max")
     (optionalFieldDecoder paramsDecoder "x1")
@@ -143,6 +144,7 @@ configDecoder =
     (optionalFieldDecoder paramsDecoder "y1")
     (optionalFieldDecoder paramsDecoder "y2")
     (repeatedFieldDecoder paramsDecoder "x")
+    (repeatedFieldDecoder paramsDecoder "y")
 
 
 configEncoder : Config -> JE.Value
@@ -155,6 +157,7 @@ configEncoder v =
     , ("y1", optionalEncoder paramsEncoder v.y1)
     , ("y2", optionalEncoder paramsEncoder v.y2)
     , ("x", repeatedFieldEncoder paramsEncoder v.x)
+    , ("y", repeatedFieldEncoder paramsEncoder v.y)
     ]
 
 
