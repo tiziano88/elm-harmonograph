@@ -11151,13 +11151,6 @@ Elm.Proto.Harmonograph.make = function (_elm) {
    var withDefault = F2(function ($default,decoder) {    return $Json$Decode.oneOf(_U.list([decoder,$Json$Decode.succeed($default)]));});
    var intFieldDecoder = function (name) {    return A2(withDefault,0,A2($Json$Decode._op[":="],name,$Json$Decode.$int));};
    var floatFieldDecoder = function (name) {    return A2(withDefault,0.0,A2($Json$Decode._op[":="],name,$Json$Decode.$float));};
-   var paramDecoder = A4($Json$Decode.object3,Param,floatFieldDecoder("value"),floatFieldDecoder("frequency"),floatFieldDecoder("amplitude"));
-   var paramsDecoder = A5($Json$Decode.object4,
-   Params,
-   floatFieldDecoder("frequency"),
-   floatFieldDecoder("phase"),
-   floatFieldDecoder("amplitude"),
-   floatFieldDecoder("damping"));
    var boolFieldDecoder = function (name) {    return A2(withDefault,false,A2($Json$Decode._op[":="],name,$Json$Decode.bool));};
    var stringFieldDecoder = function (name) {    return A2(withDefault,"",A2($Json$Decode._op[":="],name,$Json$Decode.string));};
    var repeatedFieldDecoder = F2(function (decoder,name) {    return $Json$Decode.list(A2($Json$Decode._op[":="],name,decoder));});
@@ -11165,15 +11158,24 @@ Elm.Proto.Harmonograph.make = function (_elm) {
       return $Json$Decode.oneOf(_U.list([A2($Json$Decode.map,$Maybe.Just,decoder),$Json$Decode.succeed($Maybe.Nothing)]));
    };
    var optionalFieldDecoder = F2(function (decoder,name) {    return optionalDecoder(A2($Json$Decode._op[":="],name,decoder));});
-   var configDecoder = A9($Json$Decode.object8,
-   Config,
-   intFieldDecoder("resolution"),
-   intFieldDecoder("max"),
-   A2(optionalFieldDecoder,paramsDecoder,"x1"),
-   A2(optionalFieldDecoder,paramsDecoder,"x2"),
-   A2(optionalFieldDecoder,paramsDecoder,"y1"),
-   A2(optionalFieldDecoder,paramsDecoder,"y2"),
-   A2(repeatedFieldDecoder,paramsDecoder,"x"),
+   _op["<$>"] = $Json$Decode.map;
+   _op["<*>"] = F2(function (f,v) {    return A2($Json$Decode.andThen,f,function (x) {    return A2(_op["<$>"],x,v);});});
+   var paramDecoder = A2(_op["<*>"],
+   A2(_op["<*>"],A2(_op["<$>"],Param,floatFieldDecoder("value")),floatFieldDecoder("frequency")),
+   floatFieldDecoder("amplitude"));
+   var paramsDecoder = A2(_op["<*>"],
+   A2(_op["<*>"],A2(_op["<*>"],A2(_op["<$>"],Params,floatFieldDecoder("frequency")),floatFieldDecoder("phase")),floatFieldDecoder("amplitude")),
+   floatFieldDecoder("damping"));
+   var configDecoder = A2(_op["<*>"],
+   A2(_op["<*>"],
+   A2(_op["<*>"],
+   A2(_op["<*>"],
+   A2(_op["<*>"],
+   A2(_op["<*>"],A2(_op["<*>"],A2(_op["<$>"],Config,intFieldDecoder("resolution")),intFieldDecoder("max")),A2(optionalFieldDecoder,paramsDecoder,"x1")),
+   A2(optionalFieldDecoder,paramsDecoder,"x2")),
+   A2(optionalFieldDecoder,paramsDecoder,"y1")),
+   A2(optionalFieldDecoder,paramsDecoder,"y2")),
+   A2(repeatedFieldDecoder,paramsDecoder,"x")),
    A2(repeatedFieldDecoder,paramsDecoder,"y"));
    return _elm.Proto.Harmonograph.values = {_op: _op
                                            ,optionalDecoder: optionalDecoder

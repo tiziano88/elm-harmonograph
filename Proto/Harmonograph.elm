@@ -5,6 +5,16 @@ import Json.Decode as JD exposing ((:=))
 import Json.Encode as JE
 
 
+(<$>) : (a -> b) -> JD.Decoder a -> JD.Decoder b
+(<$>) =
+  JD.map
+
+
+(<*>) : JD.Decoder (a -> b) -> JD.Decoder a -> JD.Decoder b
+(<*>) f v =
+  f `JD.andThen` \x -> x <$> v
+
+
 optionalDecoder : JD.Decoder a -> JD.Decoder (Maybe a)
 optionalDecoder decoder =
   JD.oneOf
@@ -80,10 +90,10 @@ type alias Param =
 
 paramDecoder : JD.Decoder Param
 paramDecoder =
-  JD.object3 Param
-    (floatFieldDecoder "value")
-    (floatFieldDecoder "frequency")
-    (floatFieldDecoder "amplitude")
+  Param
+    <$> (floatFieldDecoder "value")
+    <*> (floatFieldDecoder "frequency")
+    <*> (floatFieldDecoder "amplitude")
 
 
 paramEncoder : Param -> JE.Value
@@ -105,11 +115,11 @@ type alias Params =
 
 paramsDecoder : JD.Decoder Params
 paramsDecoder =
-  JD.object4 Params
-    (floatFieldDecoder "frequency")
-    (floatFieldDecoder "phase")
-    (floatFieldDecoder "amplitude")
-    (floatFieldDecoder "damping")
+  Params
+    <$> (floatFieldDecoder "frequency")
+    <*> (floatFieldDecoder "phase")
+    <*> (floatFieldDecoder "amplitude")
+    <*> (floatFieldDecoder "damping")
 
 
 paramsEncoder : Params -> JE.Value
@@ -136,15 +146,15 @@ type alias Config =
 
 configDecoder : JD.Decoder Config
 configDecoder =
-  JD.object8 Config
-    (intFieldDecoder "resolution")
-    (intFieldDecoder "max")
-    (optionalFieldDecoder paramsDecoder "x1")
-    (optionalFieldDecoder paramsDecoder "x2")
-    (optionalFieldDecoder paramsDecoder "y1")
-    (optionalFieldDecoder paramsDecoder "y2")
-    (repeatedFieldDecoder paramsDecoder "x")
-    (repeatedFieldDecoder paramsDecoder "y")
+  Config
+    <$> (intFieldDecoder "resolution")
+    <*> (intFieldDecoder "max")
+    <*> (optionalFieldDecoder paramsDecoder "x1")
+    <*> (optionalFieldDecoder paramsDecoder "x2")
+    <*> (optionalFieldDecoder paramsDecoder "y1")
+    <*> (optionalFieldDecoder paramsDecoder "y2")
+    <*> (repeatedFieldDecoder paramsDecoder "x")
+    <*> (repeatedFieldDecoder paramsDecoder "y")
 
 
 configEncoder : Config -> JE.Value
