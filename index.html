@@ -11114,7 +11114,27 @@ Elm.Proto.Harmonograph.make = function (_elm) {
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm);
    var _op = {};
-   var Config = F8(function (a,b,c,d,e,f,g,h) {    return {resolution: a,max: b,x1: c,x2: d,y1: e,y2: f,x: g,y: h};});
+   var Config = function (a) {
+      return function (b) {
+         return function (c) {
+            return function (d) {
+               return function (e) {
+                  return function (f) {
+                     return function (g) {
+                        return function (h) {
+                           return function (i) {
+                              return function (j) {
+                                 return {resolution: a,max: b,x1: c,x2: d,y1: e,y2: f,x: g,y: h,startColor: i,endColor: j};
+                              };
+                           };
+                        };
+                     };
+                  };
+               };
+            };
+         };
+      };
+   };
    var paramsEncoder = function (v) {
       return $Json$Encode.object(_U.list([{ctor: "_Tuple2",_0: "frequency",_1: $Json$Encode.$float(v.frequency)}
                                          ,{ctor: "_Tuple2",_0: "phase",_1: $Json$Encode.$float(v.phase)}
@@ -11145,7 +11165,9 @@ Elm.Proto.Harmonograph.make = function (_elm) {
                                          ,{ctor: "_Tuple2",_0: "y1",_1: A2(optionalEncoder,paramsEncoder,v.y1)}
                                          ,{ctor: "_Tuple2",_0: "y2",_1: A2(optionalEncoder,paramsEncoder,v.y2)}
                                          ,{ctor: "_Tuple2",_0: "x",_1: A2(repeatedFieldEncoder,paramsEncoder,v.x)}
-                                         ,{ctor: "_Tuple2",_0: "y",_1: A2(repeatedFieldEncoder,paramsEncoder,v.y)}]));
+                                         ,{ctor: "_Tuple2",_0: "y",_1: A2(repeatedFieldEncoder,paramsEncoder,v.y)}
+                                         ,{ctor: "_Tuple2",_0: "startColor",_1: $Json$Encode.string(v.startColor)}
+                                         ,{ctor: "_Tuple2",_0: "endColor",_1: $Json$Encode.string(v.endColor)}]));
    };
    var enumFieldDecoder = F2(function (decoder,name) {    return A2($Json$Decode._op[":="],name,decoder);});
    var withDefault = F2(function ($default,decoder) {    return $Json$Decode.oneOf(_U.list([decoder,$Json$Decode.succeed($default)]));});
@@ -11171,12 +11193,16 @@ Elm.Proto.Harmonograph.make = function (_elm) {
    A2(_op["<*>"],
    A2(_op["<*>"],
    A2(_op["<*>"],
+   A2(_op["<*>"],
+   A2(_op["<*>"],
    A2(_op["<*>"],A2(_op["<*>"],A2(_op["<$>"],Config,intFieldDecoder("resolution")),intFieldDecoder("max")),A2(optionalFieldDecoder,paramsDecoder,"x1")),
    A2(optionalFieldDecoder,paramsDecoder,"x2")),
    A2(optionalFieldDecoder,paramsDecoder,"y1")),
    A2(optionalFieldDecoder,paramsDecoder,"y2")),
    A2(repeatedFieldDecoder,paramsDecoder,"x")),
-   A2(repeatedFieldDecoder,paramsDecoder,"y"));
+   A2(repeatedFieldDecoder,paramsDecoder,"y")),
+   stringFieldDecoder("startColor")),
+   stringFieldDecoder("endColor"));
    return _elm.Proto.Harmonograph.values = {_op: _op
                                            ,optionalDecoder: optionalDecoder
                                            ,optionalFieldDecoder: optionalFieldDecoder
@@ -11251,13 +11277,14 @@ Elm.Main.make = function (_elm) {
    var parseFloat = function (s) {    return A2($Result.withDefault,0,$String.toFloat(s));};
    var SliderAttributes = F5(function (a,b,c,d,e) {    return {title: a,min: b,max: c,step: d,update: e};});
    _op["==>"] = F2(function (v0,v1) {    return {ctor: "_Tuple2",_0: v0,_1: v1};});
-   var colorPicker = function (address) {
+   var colorPicker = F2(function (address,v) {
       return A2($Html.input,
       _U.list([$Html$Attributes.type$("color")
+              ,$Html$Attributes.value(v)
               ,A3($Html$Events.on,"input",$Html$Events.targetValue,$Signal.message(address))
               ,$Html$Attributes.style(_U.list([A2(_op["==>"],"width","30em")]))]),
       _U.list([]));
-   };
+   });
    var slider = F2(function (attr,v) {
       return A2($Html.div,
       _U.list([$Html$Attributes.style(_U.list([A2(_op["==>"],"width","40em")]))]),
@@ -11311,8 +11338,6 @@ Elm.Main.make = function (_elm) {
                       ,eff: 0.0
                       ,animate: false
                       ,updated: false
-                      ,startColor: "red"
-                      ,endColor: "blue"
                       ,config: {resolution: 4
                                ,max: 1000
                                ,x1: $Maybe.Just({frequency: 0.4,phase: 0,amplitude: 200,damping: 2.0e-3})
@@ -11320,9 +11345,11 @@ Elm.Main.make = function (_elm) {
                                ,y1: $Maybe.Just({frequency: 0.3,phase: 0,amplitude: 230,damping: 1.7e-4})
                                ,y2: $Maybe.Just({frequency: 0.4,phase: 0,amplitude: 200,damping: 1.3e-4})
                                ,x: _U.list([{frequency: 0.1,phase: 0,amplitude: 111,damping: 1.0e-3},{frequency: 0.2,phase: 0,amplitude: 222,damping: 2.0e-3}])
-                               ,y: _U.list([{frequency: 0.1,phase: 0,amplitude: 111,damping: 1.0e-3}])}};
+                               ,y: _U.list([{frequency: 0.1,phase: 0,amplitude: 111,damping: 1.0e-3}])
+                               ,startColor: "#0000ff"
+                               ,endColor: "#ff0000"}};
    var init = {ctor: "_Tuple2",_0: initialModel,_1: $Effects.none};
-   var Model = F7(function (a,b,c,d,e,f,g) {    return {config: a,time: b,animate: c,updated: d,startColor: e,endColor: f,eff: g};});
+   var Model = F5(function (a,b,c,d,e) {    return {config: a,time: b,animate: c,updated: d,eff: e};});
    var maxPhase = 2 * $Basics.pi;
    var phaseAdd = F2(function (x,y) {    var z = x + y;return _U.cmp(z,maxPhase) > 0 ? z - maxPhase : z;});
    var update = F2(function (action,model) {
@@ -11355,8 +11382,12 @@ Elm.Main.make = function (_elm) {
                        return {ctor: "_Tuple2",_0: model,_1: $Effects.none};
                     }
               }
-         case "SetStartColor": return {ctor: "_Tuple2",_0: _U.update(model,{startColor: _p3._0}),_1: $Effects.none};
-         case "SetEndColor": return {ctor: "_Tuple2",_0: _U.update(model,{endColor: _p3._0}),_1: $Effects.none};
+         case "SetStartColor": var c = model.config;
+           var c1 = _U.update(c,{startColor: _p3._0});
+           return {ctor: "_Tuple2",_0: _U.update(model,{config: c1}),_1: updateUrl(c1)};
+         case "SetEndColor": var c = model.config;
+           var c1 = _U.update(c,{endColor: _p3._0});
+           return {ctor: "_Tuple2",_0: _U.update(model,{config: c1}),_1: updateUrl(c1)};
          case "X1": var c = model.config;
            var c1 = _U.update(c,{x1: $Maybe.Just(_p3._0)});
            return {ctor: "_Tuple2",_0: _U.update(model,{config: c1}),_1: updateUrl(c1)};
@@ -11404,10 +11435,10 @@ Elm.Main.make = function (_elm) {
                  return A2($Signal.message,address,SetConfig(function () {    var c = model.config;return _U.update(c,{max: $Basics.round(x)});}()));
               }},
               $Basics.toFloat(model.config.max))
-              ,colorPicker(A2($Signal.forwardTo,address,SetStartColor))
-              ,$Html.text(model.startColor)
-              ,colorPicker(A2($Signal.forwardTo,address,SetEndColor))
-              ,$Html.text(model.endColor)
+              ,A2(colorPicker,A2($Signal.forwardTo,address,SetStartColor),model.config.startColor)
+              ,$Html.text(model.config.startColor)
+              ,A2(colorPicker,A2($Signal.forwardTo,address,SetEndColor),model.config.endColor)
+              ,$Html.text(model.config.endColor)
               ,$Html.text("x1")
               ,A2(controlBlock,A2($Signal.forwardTo,address,X1),def(model.config.x1))
               ,$Html.text("x2")

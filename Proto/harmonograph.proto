@@ -24,4 +24,7 @@ message Config {
 
   repeated Params x = 7;
   repeated Params y = 8;
+
+  string start_color = 9;
+  string end_color = 10;
 }

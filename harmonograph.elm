@@ -43,8 +43,6 @@ type alias Model =
   , time : Float
   , animate : Bool
   , updated : Bool
-  , startColor : String
-  , endColor : String
   , eff : Float
   }
 
@@ -71,8 +69,6 @@ initialModel =
   , eff = 0.0
   , animate = False
   , updated = False
-  , startColor = "red"
-  , endColor = "blue"
   , config =
     { resolution = 4
     , max = 1000
@@ -123,6 +119,8 @@ initialModel =
           , damping = 0.001
           }
         ]
+    , startColor = "#0000ff"
+    , endColor = "#ff0000"
     }
   }
 
@@ -257,11 +255,19 @@ update action model =
             Err e ->
               ( model, Effects.none )
 
-    SetStartColor c ->
-      ( { model | startColor = c }, Effects.none )
+    SetStartColor v ->
+      let
+        c = model.config
+        c1 = { c | startColor = v }
+      in
+        ( { model | config = c1 }, updateUrl c1 )
 
-    SetEndColor c ->
-      ( { model | endColor = c }, Effects.none )
+    SetEndColor v ->
+      let
+        c = model.config
+        c1 = { c | endColor = v }
+      in
+        ( { model | config = c1 }, updateUrl c1 )
 
     X1 p ->
       let
@@ -335,10 +341,10 @@ paramControls address model =
       , step = 100.0
       , update = \x -> Signal.message address (SetConfig <| let c = model.config in { c | max = round x })
       } (toFloat model.config.max)
-    , colorPicker (Signal.forwardTo address SetStartColor)
-    , Html.text model.startColor
-    , colorPicker (Signal.forwardTo address SetEndColor)
-    , Html.text model.endColor
+    , colorPicker (Signal.forwardTo address SetStartColor) (model.config.startColor)
+    , Html.text model.config.startColor
+    , colorPicker (Signal.forwardTo address SetEndColor) (model.config.endColor)
+    , Html.text model.config.endColor
     , Html.text "x1"
     , controlBlock (Signal.forwardTo address X1) (def model.config.x1)
     , Html.text "x2"
@@ -390,10 +396,11 @@ controlBlock address p =
     ]
 
 
-colorPicker : Signal.Address String -> Html
-colorPicker address =
+colorPicker : Signal.Address String -> String -> Html
+colorPicker address v =
   input
     [ type' "color"
+    , Html.Attributes.value v
     , on "input" targetValue (Signal.message address)
     , style
       [ "width" ==> "30em"

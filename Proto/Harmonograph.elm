@@ -141,6 +141,8 @@ type alias Config =
   , y2 : Maybe Params -- 6
   , x : List Params -- 7
   , y : List Params -- 8
+  , startColor : String -- 9
+  , endColor : String -- 10
   }
 
 
@@ -155,6 +157,8 @@ configDecoder =
     <*> (optionalFieldDecoder paramsDecoder "y2")
     <*> (repeatedFieldDecoder paramsDecoder "x")
     <*> (repeatedFieldDecoder paramsDecoder "y")
+    <*> (stringFieldDecoder "startColor")
+    <*> (stringFieldDecoder "endColor")
 
 
 configEncoder : Config -> JE.Value
@@ -168,6 +172,8 @@ configEncoder v =
     , ("y2", optionalEncoder paramsEncoder v.y2)
     , ("x", repeatedFieldEncoder paramsEncoder v.x)
     , ("y", repeatedFieldEncoder paramsEncoder v.y)
+    , ("startColor", JE.string v.startColor)
+    , ("endColor", JE.string v.endColor)
     ]
 
 
