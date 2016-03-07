@@ -61,7 +61,8 @@ app =
 
 
 init : (Model, Effects Action)
-init = (initialModel, Effects.none)
+init =
+  noEffects initialModel
 
 
 initialModel : Model
@@ -202,6 +203,11 @@ type Action
   | Y2 Params
 
 
+noEffects : a -> (a, Effects b)
+noEffects m =
+  (m, Effects.none)
+
+
 update : Action -> Model -> ( Model, Effects Action )
 update action model =
   case action of
@@ -223,24 +229,24 @@ update action model =
             , y2 = Just { y2 | phase = phaseAdd y2.phase 0.01 }
             }
         in
-          ({ model | config = c1 }, Effects.none)
+          noEffects { model | config = c1 }
       else
-        (model, Effects.none)
+        noEffects model
 
     Start ->
-      ( { model | animate = True }, Effects.none )
+      noEffects { model | animate = True }
 
     Stop ->
-      ( { model | animate = False }, Effects.none )
+      noEffects { model | animate = False }
 
     SetConfig c ->
-      ( { model | config = c }, Effects.none )
+      noEffects { model | config = c }
 
     Url s ->
       if
         model.updated
       then
-        (model, Effects.none)
+        noEffects model
       else
         let
           r =
@@ -251,10 +257,10 @@ update action model =
         in
           case r of
             Ok v ->
-              ( { model | config = v, updated = True }, Effects.none )
+              noEffects { model | config = v, updated = True }
 
             Err e ->
-              ( model, Effects.none )
+              noEffects model
 
     SetStartColor v ->
       let
