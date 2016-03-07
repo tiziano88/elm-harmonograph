@@ -1,5 +1,6 @@
 import Array
 import Color exposing (..)
+import Color.Convert exposing (hexToColor)
 import Effects exposing (Effects)
 import Focus exposing ((=>))
 import Graphics.Collage exposing (..)
@@ -459,9 +460,15 @@ parseFloat s =
   String.toFloat s |> Result.withDefault 0
 
 
+decodeColor : String -> Color
+decodeColor s =
+  hexToColor s
+  |> Maybe.withDefault black
+
+
 trace : Model -> Form
 trace model =
-  traced (solid blue) (path <| values model)
+  traced (solid (decodeColor model.config.startColor)) (path <| values model)
 
 
 values : Model -> List (Float, Float)
