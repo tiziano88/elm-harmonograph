@@ -11817,10 +11817,26 @@ Elm.Main.make = function (_elm) {
       var res = model.config.resolution;
       return $Array.toList(A2($Array.initialize,n * res,function (x) {    return A2(point,model,$Basics.toFloat(x) / $Basics.toFloat(res));}));
    };
+   var interpolate = F3(function (a,b,x) {    return a * (1 - x) + b * x;});
+   var interpolateColors = F3(function (c1,c2,x) {
+      var h2 = $Color.toHsl(c2);
+      var h1 = $Color.toHsl(c1);
+      return A4($Color.hsla,
+      A3(interpolate,h1.hue,h2.hue,x),
+      A3(interpolate,h1.saturation,h2.saturation,x),
+      A3(interpolate,h1.lightness,h2.lightness,x),
+      A3(interpolate,h1.alpha,h2.alpha,x));
+   });
    var decodeColor = function (s) {    return A2($Maybe.withDefault,$Color.black,$Color$Convert.hexToColor(s));};
-   var trace = function (model) {
-      return A2($Graphics$Collage.traced,$Graphics$Collage.solid(decodeColor(model.config.startColor)),$Graphics$Collage.path(values(model)));
-   };
+   var createPath = F2(function (m,ps) {
+      var c2 = decodeColor(m.config.endColor);
+      var c1 = decodeColor(m.config.startColor);
+      var c = function (i) {    return A3(interpolateColors,c1,c2,$Basics.toFloat(i) / $Basics.toFloat(m.config.max * m.config.resolution));};
+      return $Graphics$Collage.group(A2($List.indexedMap,
+      F2(function (i,x) {    return A2($Graphics$Collage.traced,$Graphics$Collage.solid(c(i)),x);}),
+      A3($List.map2,$Graphics$Collage.segment,ps,A2($Maybe.withDefault,_U.list([]),$List.tail(ps)))));
+   });
+   var trace = function (model) {    return A2(createPath,model,values(model));};
    var parseFloat = function (s) {    return A2($Result.withDefault,0,$String.toFloat(s));};
    var SliderAttributes = F5(function (a,b,c,d,e) {    return {title: a,min: b,max: c,step: d,update: e};});
    _op["=>"] = F2(function (v0,v1) {    return {ctor: "_Tuple2",_0: v0,_1: v1};});
@@ -11860,6 +11876,7 @@ Elm.Main.make = function (_elm) {
    var SetStartColor = function (a) {    return {ctor: "SetStartColor",_0: a};};
    var SetConfig = function (a) {    return {ctor: "SetConfig",_0: a};};
    var Url = function (a) {    return {ctor: "Url",_0: a};};
+   var Nop = {ctor: "Nop"};
    var Tick = {ctor: "Tick"};
    var y2 = A2($Focus.create,function (c) {    return c.y2;},F2(function (f,c) {    return _U.update(c,{y2: f(c.y2)});}));
    var y1 = A2($Focus.create,function (c) {    return c.y1;},F2(function (f,c) {    return _U.update(c,{y1: f(c.y1)});}));
@@ -11868,7 +11885,7 @@ Elm.Main.make = function (_elm) {
    var con = A2($Focus.create,function (m) {    return m.config;},F2(function (f,m) {    return _U.update(m,{config: f(m.config)});}));
    var updateUrl = function (config) {
       return function (s) {
-         return A2($Effects.map,function (_p2) {    return Tick;},$Effects.task($History.replacePath(A2($Basics._op["++"],"#",s))));
+         return A2($Effects.map,function (_p2) {    return Nop;},$Effects.task($History.replacePath(A2($Basics._op["++"],"#",s))));
       }($Http.uriEncode(A2($Json$Encode.encode,0,$Proto$Harmonograph.configEncoder(config))));
    };
    var initialModel = {time: 0.0
@@ -11909,7 +11926,8 @@ Elm.Main.make = function (_elm) {
    var update = F2(function (action,model) {
       var _p3 = action;
       switch (_p3.ctor)
-      {case "Tick": var y2 = def(model.config.y2);
+      {case "Nop": return noEffects(model);
+         case "Tick": var y2 = def(model.config.y2);
            var y1 = def(model.config.y1);
            var x2 = def(model.config.x2);
            var x1 = def(model.config.x1);
@@ -12035,6 +12053,7 @@ Elm.Main.make = function (_elm) {
                              ,y1: y1
                              ,y2: y2
                              ,Tick: Tick
+                             ,Nop: Nop
                              ,Url: Url
                              ,SetConfig: SetConfig
                              ,SetStartColor: SetStartColor
@@ -12054,7 +12073,10 @@ Elm.Main.make = function (_elm) {
                              ,slider: slider
                              ,parseFloat: parseFloat
                              ,decodeColor: decodeColor
+                             ,interpolate: interpolate
+                             ,interpolateColors: interpolateColors
                              ,trace: trace
+                             ,createPath: createPath
                              ,values: values
                              ,point: point
                              ,def: def

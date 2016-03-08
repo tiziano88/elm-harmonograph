@@ -170,7 +170,7 @@ updateUrl config =
     |> \s -> "#" ++ s
     |> History.replacePath
     |> Effects.task
-    |> Effects.map (\_ -> Tick)
+    |> Effects.map (\_ -> Nop)
 
 
 -- Experimental Focus stuff.
@@ -208,6 +208,7 @@ y2 =
 
 type Action
   = Tick
+  | Nop
   | Url String
   | SetConfig Config
   | SetStartColor String
@@ -226,6 +227,9 @@ noEffects m =
 update : Action -> Model -> ( Model, Effects Action )
 update action model =
   case action of
+    Nop ->
+      noEffects model
+
     Tick ->
       let
         c = model.config
@@ -476,9 +480,39 @@ decodeColor s =
   |> Maybe.withDefault black
 
 
+interpolate : Float -> Float -> Float -> Float
+interpolate a b x =
+  (a * (1 - x)) + (b * x)
+
+
+interpolateColors : Color -> Color -> Float -> Color
+interpolateColors c1 c2 x =
+  let
+    h1 = Color.toHsl c1
+    h2 = Color.toHsl c2
+  in
+    Color.hsla
+      (interpolate h1.hue h2.hue x)
+      (interpolate h1.saturation h2.saturation x)
+      (interpolate h1.lightness h2.lightness x)
+      (interpolate h1.alpha h2.alpha x)
+
+
 trace : Model -> Form
 trace model =
-  traced (solid (decodeColor model.config.startColor)) (path <| values model)
+  createPath model <| values model
+
+
+createPath : Model -> List (Float, Float) -> Form
+createPath m ps =
+  let
+    c1 = decodeColor m.config.startColor
+    c2 = decodeColor m.config.endColor
+    c i = interpolateColors c1 c2 ((toFloat i) / (toFloat <| m.config.max * m.config.resolution))
+  in
+    List.map2 segment ps (List.tail ps |> Maybe.withDefault [])
+      |> List.indexedMap (\i x -> traced (solid <| c i) x)
+      |> group
 
 
 values : Model -> List (Float, Float)
