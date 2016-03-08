@@ -8382,6 +8382,394 @@ Elm.Json.Decode.make = function (_elm) {
                                     ,andThen: andThen
                                     ,value: value
                                     ,customDecoder: customDecoder};
+};Elm.Native.Regex = {};
+Elm.Native.Regex.make = function(localRuntime) {
+	localRuntime.Native = localRuntime.Native || {};
+	localRuntime.Native.Regex = localRuntime.Native.Regex || {};
+	if (localRuntime.Native.Regex.values)
+	{
+		return localRuntime.Native.Regex.values;
+	}
+	if ('values' in Elm.Native.Regex)
+	{
+		return localRuntime.Native.Regex.values = Elm.Native.Regex.values;
+	}
+
+	var List = Elm.Native.List.make(localRuntime);
+	var Maybe = Elm.Maybe.make(localRuntime);
+
+	function escape(str)
+	{
+		return str.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+	}
+	function caseInsensitive(re)
+	{
+		return new RegExp(re.source, 'gi');
+	}
+	function regex(raw)
+	{
+		return new RegExp(raw, 'g');
+	}
+
+	function contains(re, string)
+	{
+		return string.match(re) !== null;
+	}
+
+	function find(n, re, str)
+	{
+		n = n.ctor === 'All' ? Infinity : n._0;
+		var out = [];
+		var number = 0;
+		var string = str;
+		var lastIndex = re.lastIndex;
+		var prevLastIndex = -1;
+		var result;
+		while (number++ < n && (result = re.exec(string)))
+		{
+			if (prevLastIndex === re.lastIndex) break;
+			var i = result.length - 1;
+			var subs = new Array(i);
+			while (i > 0)
+			{
+				var submatch = result[i];
+				subs[--i] = submatch === undefined
+					? Maybe.Nothing
+					: Maybe.Just(submatch);
+			}
+			out.push({
+				match: result[0],
+				submatches: List.fromArray(subs),
+				index: result.index,
+				number: number
+			});
+			prevLastIndex = re.lastIndex;
+		}
+		re.lastIndex = lastIndex;
+		return List.fromArray(out);
+	}
+
+	function replace(n, re, replacer, string)
+	{
+		n = n.ctor === 'All' ? Infinity : n._0;
+		var count = 0;
+		function jsReplacer(match)
+		{
+			if (count++ >= n)
+			{
+				return match;
+			}
+			var i = arguments.length - 3;
+			var submatches = new Array(i);
+			while (i > 0)
+			{
+				var submatch = arguments[i];
+				submatches[--i] = submatch === undefined
+					? Maybe.Nothing
+					: Maybe.Just(submatch);
+			}
+			return replacer({
+				match: match,
+				submatches: List.fromArray(submatches),
+				index: arguments[i - 1],
+				number: count
+			});
+		}
+		return string.replace(re, jsReplacer);
+	}
+
+	function split(n, re, str)
+	{
+		n = n.ctor === 'All' ? Infinity : n._0;
+		if (n === Infinity)
+		{
+			return List.fromArray(str.split(re));
+		}
+		var string = str;
+		var result;
+		var out = [];
+		var start = re.lastIndex;
+		while (n--)
+		{
+			if (!(result = re.exec(string))) break;
+			out.push(string.slice(start, result.index));
+			start = re.lastIndex;
+		}
+		out.push(string.slice(start));
+		return List.fromArray(out);
+	}
+
+	return Elm.Native.Regex.values = {
+		regex: regex,
+		caseInsensitive: caseInsensitive,
+		escape: escape,
+
+		contains: F2(contains),
+		find: F3(find),
+		replace: F4(replace),
+		split: F3(split)
+	};
+};
+Elm.Regex = Elm.Regex || {};
+Elm.Regex.make = function (_elm) {
+   "use strict";
+   _elm.Regex = _elm.Regex || {};
+   if (_elm.Regex.values) return _elm.Regex.values;
+   var _U = Elm.Native.Utils.make(_elm),$Maybe = Elm.Maybe.make(_elm),$Native$Regex = Elm.Native.Regex.make(_elm);
+   var _op = {};
+   var split = $Native$Regex.split;
+   var replace = $Native$Regex.replace;
+   var find = $Native$Regex.find;
+   var AtMost = function (a) {    return {ctor: "AtMost",_0: a};};
+   var All = {ctor: "All"};
+   var Match = F4(function (a,b,c,d) {    return {match: a,submatches: b,index: c,number: d};});
+   var contains = $Native$Regex.contains;
+   var caseInsensitive = $Native$Regex.caseInsensitive;
+   var regex = $Native$Regex.regex;
+   var escape = $Native$Regex.escape;
+   var Regex = {ctor: "Regex"};
+   return _elm.Regex.values = {_op: _op
+                              ,regex: regex
+                              ,escape: escape
+                              ,caseInsensitive: caseInsensitive
+                              ,contains: contains
+                              ,find: find
+                              ,replace: replace
+                              ,split: split
+                              ,Match: Match
+                              ,All: All
+                              ,AtMost: AtMost};
+};Elm.ParseInt = Elm.ParseInt || {};
+Elm.ParseInt.make = function (_elm) {
+   "use strict";
+   _elm.ParseInt = _elm.ParseInt || {};
+   if (_elm.ParseInt.values) return _elm.ParseInt.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Char = Elm.Char.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm),
+   $String = Elm.String.make(_elm);
+   var _op = {};
+   var charFromInt = function (i) {
+      return _U.cmp(i,10) < 0 ? $Char.fromCode(i + $Char.toCode(_U.chr("0"))) : _U.cmp(i,
+      36) < 0 ? $Char.fromCode(i - 10 + $Char.toCode(_U.chr("A"))) : _U.crash("ParseInt",
+      {start: {line: 141,column: 5},end: {line: 141,column: 16}})($Basics.toString(i));
+   };
+   var toRadix$ = F2(function (radix,i) {
+      return _U.cmp(i,radix) < 0 ? $String.fromChar(charFromInt(i)) : A2($Basics._op["++"],
+      A2(toRadix$,radix,i / radix | 0),
+      $String.fromChar(charFromInt(A2($Basics._op["%"],i,radix))));
+   });
+   var isBetween = F3(function (lower,upper,c) {    var ci = $Char.toCode(c);return _U.cmp($Char.toCode(lower),ci) < 1 && _U.cmp(ci,$Char.toCode(upper)) < 1;});
+   var charOffset = F2(function (basis,c) {    return $Char.toCode(c) - $Char.toCode(basis);});
+   var InvalidRadix = function (a) {    return {ctor: "InvalidRadix",_0: a};};
+   var toRadix = F2(function (radix,i) {
+      return _U.cmp(2,radix) < 1 && _U.cmp(radix,36) < 1 ? _U.cmp(i,0) < 0 ? $Result.Ok(A2($Basics._op["++"],
+      "-",
+      A2(toRadix$,radix,0 - i))) : $Result.Ok(A2(toRadix$,radix,i)) : $Result.Err(InvalidRadix(radix));
+   });
+   var OutOfRange = function (a) {    return {ctor: "OutOfRange",_0: a};};
+   var InvalidChar = function (a) {    return {ctor: "InvalidChar",_0: a};};
+   var intFromChar = F2(function (radix,c) {
+      var validInt = function (i) {    return _U.cmp(i,radix) < 0 ? $Result.Ok(i) : $Result.Err(OutOfRange(c));};
+      var toInt = A3(isBetween,_U.chr("0"),_U.chr("9"),c) ? $Result.Ok(A2(charOffset,_U.chr("0"),c)) : A3(isBetween,
+      _U.chr("a"),
+      _U.chr("z"),
+      c) ? $Result.Ok(10 + A2(charOffset,_U.chr("a"),c)) : A3(isBetween,_U.chr("A"),_U.chr("Z"),c) ? $Result.Ok(10 + A2(charOffset,
+      _U.chr("A"),
+      c)) : $Result.Err(InvalidChar(c));
+      return A2($Result.andThen,toInt,validInt);
+   });
+   var parseIntR = F2(function (radix,rstring) {
+      var _p0 = $String.uncons(rstring);
+      if (_p0.ctor === "Nothing") {
+            return $Result.Ok(0);
+         } else {
+            return A2($Result.andThen,
+            A2(intFromChar,radix,_p0._0._0),
+            function (ci) {
+               return A2($Result.andThen,A2(parseIntR,radix,_p0._0._1),function (ri) {    return $Result.Ok(ci + ri * radix);});
+            });
+         }
+   });
+   var parseIntRadix = F2(function (radix,string) {
+      return _U.cmp(2,radix) < 1 && _U.cmp(radix,36) < 1 ? A2(parseIntR,radix,$String.reverse(string)) : $Result.Err(InvalidRadix(radix));
+   });
+   var parseInt = parseIntRadix(10);
+   var parseIntOct = parseIntRadix(8);
+   var parseIntHex = parseIntRadix(16);
+   return _elm.ParseInt.values = {_op: _op
+                                 ,parseInt: parseInt
+                                 ,parseIntOct: parseIntOct
+                                 ,parseIntHex: parseIntHex
+                                 ,parseIntRadix: parseIntRadix
+                                 ,toRadix: toRadix
+                                 ,toRadix$: toRadix$
+                                 ,InvalidChar: InvalidChar
+                                 ,OutOfRange: OutOfRange
+                                 ,InvalidRadix: InvalidRadix};
+};Elm.Color = Elm.Color || {};
+Elm.Color.Convert = Elm.Color.Convert || {};
+Elm.Color.Convert.make = function (_elm) {
+   "use strict";
+   _elm.Color = _elm.Color || {};
+   _elm.Color.Convert = _elm.Color.Convert || {};
+   if (_elm.Color.Convert.values) return _elm.Color.Convert.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Array = Elm.Array.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Char = Elm.Char.make(_elm),
+   $Color = Elm.Color.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $ParseInt = Elm.ParseInt.make(_elm),
+   $Regex = Elm.Regex.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm),
+   $String = Elm.String.make(_elm);
+   var _op = {};
+   var xyzToColor = function (_p0) {
+      var _p1 = _p0;
+      var c = function (ch) {    return _U.cmp(ch,3.1308e-3) > 0 ? 1.055 * Math.pow(ch,1 / 2.4) - 5.5e-2 : 12.92 * ch;};
+      var z$ = _p1.z / 100;
+      var y$ = _p1.y / 100;
+      var x$ = _p1.x / 100;
+      return A3($Color.rgb,
+      $Basics.round(c(x$ * 3.2404542 + y$ * -1.5371385 + z$ * -0.4986) * 255),
+      $Basics.round(c(x$ * -0.969266 + y$ * 1.8760108 + z$ * 4.1556e-2) * 255),
+      $Basics.round(c(x$ * 5.56434e-2 + y$ * 0.2040259 + z$ * 1.0572252) * 255));
+   };
+   var labToXyz = function (_p2) {
+      var _p3 = _p2;
+      var y = (_p3.l + 16) / 116;
+      var c = function (ch) {    var ch$ = ch * ch * ch;return _U.cmp(ch$,8.856e-3) > 0 ? ch$ : (ch - 16 / 116) / 7.787;};
+      return {y: c(y) * 100,x: c(y + _p3.a / 500) * 95.047,z: c(y - _p3.b / 200) * 108.883};
+   };
+   var labToColor = function (lab) {    return xyzToColor(labToXyz(lab));};
+   var xyzToLab = function (_p4) {
+      var _p5 = _p4;
+      var c = function (ch) {    return _U.cmp(ch,8.856e-3) > 0 ? Math.pow(ch,1 / 3) : 7.787 * ch + 16 / 116;};
+      var x$ = c(_p5.x / 95.047);
+      var y$ = c(_p5.y / 100);
+      var z$ = c(_p5.z / 108.883);
+      return {l: 116 * y$ - 16,a: 500 * (x$ - y$),b: 200 * (y$ - z$)};
+   };
+   var colorToXyz = function (cl) {
+      var _p6 = $Color.toRgb(cl);
+      var red = _p6.red;
+      var green = _p6.green;
+      var blue = _p6.blue;
+      var c = function (ch) {
+         var ch$ = $Basics.toFloat(ch) / 255;
+         var ch$$ = _U.cmp(ch$,4.045e-2) > 0 ? Math.pow((ch$ + 5.5e-2) / 1.055,2.4) : ch$ / 12.92;
+         return ch$$ * 100;
+      };
+      var r = c(red);
+      var g = c(green);
+      var b = c(blue);
+      return {x: r * 0.4124 + g * 0.3576 + b * 0.1805,y: r * 0.2126 + g * 0.7152 + b * 7.22e-2,z: r * 1.93e-2 + g * 0.1192 + b * 0.9505};
+   };
+   var colorToLab = function (cl) {    return xyzToLab(colorToXyz(cl));};
+   var toRadix = function (n) {
+      var getChr = function (c) {    return _U.cmp(c,10) < 0 ? $Basics.toString(c) : $String.fromChar($Char.fromCode(87 + c));};
+      return _U.cmp(n,16) < 0 ? getChr(n) : A2($Basics._op["++"],toRadix(n / 16 | 0),getChr(A2($Basics._op["%"],n,16)));
+   };
+   var toHex = function (n) {    var hex = toRadix(n);return _U.eq($String.length(hex),1) ? A2($Basics._op["++"],"0",hex) : hex;};
+   var colorToHex = function (cl) {
+      var _p7 = $Color.toRgb(cl);
+      var red = _p7.red;
+      var green = _p7.green;
+      var blue = _p7.blue;
+      var alpha = _p7.alpha;
+      return A2($Basics._op["++"],"#",A2($Basics._op["++"],toHex(red),A2($Basics._op["++"],toHex(green),toHex(blue))));
+   };
+   var hexToColor = function (c) {
+      var r = $List.head(A2($List.map,
+      function (_) {
+         return _.submatches;
+      },
+      A3($Regex.find,$Regex.All,$Regex.regex("^#?([a-f\\d]{2})([a-f\\d]{2})([a-f\\d]{2})$"),$String.toLower(c))));
+      var _p8 = r;
+      if (_p8.ctor === "Just") {
+            var v = $Array.fromList(A2($List.filterMap,
+            $Basics.identity,
+            A2($List.map,$Result.toMaybe,A2($List.map,$ParseInt.parseIntHex,A2($List.filterMap,$Basics.identity,_p8._0)))));
+            var r = A2($Array.get,0,v);
+            var g = A2($Array.get,1,v);
+            var b = A2($Array.get,2,v);
+            var _p9 = r;
+            if (_p9.ctor === "Just") {
+                  var _p10 = g;
+                  if (_p10.ctor === "Just") {
+                        var _p11 = b;
+                        if (_p11.ctor === "Just") {
+                              return $Maybe.Just(A3($Color.rgb,_p9._0,_p10._0,_p11._0));
+                           } else {
+                              return $Maybe.Nothing;
+                           }
+                     } else {
+                        return $Maybe.Nothing;
+                     }
+               } else {
+                  return $Maybe.Nothing;
+               }
+         } else {
+            return $Maybe.Nothing;
+         }
+   };
+   var cssColorString = F2(function (kind,values) {
+      return A2($Basics._op["++"],kind,A2($Basics._op["++"],"(",A2($Basics._op["++"],A2($String.join,", ",values),")")));
+   });
+   var toPercentString = function (h) {    return A2($Basics._op["++"],$Basics.toString($Basics.round(h * 100)),"%");};
+   var hueToString = function (h) {    return $Basics.toString($Basics.round(h * 180 / $Basics.pi));};
+   var colorToCssHsla = function (cl) {
+      var _p12 = $Color.toHsl(cl);
+      var hue = _p12.hue;
+      var saturation = _p12.saturation;
+      var lightness = _p12.lightness;
+      var alpha = _p12.alpha;
+      return A2(cssColorString,"hsla",_U.list([hueToString(hue),toPercentString(saturation),toPercentString(lightness),$Basics.toString(alpha)]));
+   };
+   var colorToCssHsl = function (cl) {
+      var _p13 = $Color.toHsl(cl);
+      var hue = _p13.hue;
+      var saturation = _p13.saturation;
+      var lightness = _p13.lightness;
+      var alpha = _p13.alpha;
+      return A2(cssColorString,"hsl",_U.list([hueToString(hue),toPercentString(saturation),toPercentString(lightness)]));
+   };
+   var colorToCssRgba = function (cl) {
+      var _p14 = $Color.toRgb(cl);
+      var red = _p14.red;
+      var green = _p14.green;
+      var blue = _p14.blue;
+      var alpha = _p14.alpha;
+      return A2(cssColorString,"rgba",_U.list([$Basics.toString(red),$Basics.toString(green),$Basics.toString(blue),$Basics.toString(alpha)]));
+   };
+   var colorToCssRgb = function (cl) {
+      var _p15 = $Color.toRgb(cl);
+      var red = _p15.red;
+      var green = _p15.green;
+      var blue = _p15.blue;
+      var alpha = _p15.alpha;
+      return A2(cssColorString,"rgb",_U.list([$Basics.toString(red),$Basics.toString(green),$Basics.toString(blue)]));
+   };
+   var Lab = F3(function (a,b,c) {    return {l: a,a: b,b: c};});
+   var XYZ = F3(function (a,b,c) {    return {x: a,y: b,z: c};});
+   return _elm.Color.Convert.values = {_op: _op
+                                      ,colorToCssRgb: colorToCssRgb
+                                      ,colorToCssRgba: colorToCssRgba
+                                      ,colorToCssHsl: colorToCssHsl
+                                      ,colorToCssHsla: colorToCssHsla
+                                      ,colorToHex: colorToHex
+                                      ,hexToColor: hexToColor
+                                      ,colorToLab: colorToLab
+                                      ,labToColor: labToColor};
 };Elm.Native.Effects = {};
 Elm.Native.Effects.make = function(localRuntime) {
 
@@ -11233,6 +11621,7 @@ Elm.Main.make = function (_elm) {
    $Array = Elm.Array.make(_elm),
    $Basics = Elm.Basics.make(_elm),
    $Color = Elm.Color.make(_elm),
+   $Color$Convert = Elm.Color.Convert.make(_elm),
    $Debug = Elm.Debug.make(_elm),
    $Effects = Elm.Effects.make(_elm),
    $Focus = Elm.Focus.make(_elm),
@@ -11273,23 +11662,26 @@ Elm.Main.make = function (_elm) {
       var res = model.config.resolution;
       return $Array.toList(A2($Array.initialize,n * res,function (x) {    return A2(point,model,$Basics.toFloat(x) / $Basics.toFloat(res));}));
    };
-   var trace = function (model) {    return A2($Graphics$Collage.traced,$Graphics$Collage.solid($Color.blue),$Graphics$Collage.path(values(model)));};
+   var decodeColor = function (s) {    return A2($Maybe.withDefault,$Color.black,$Color$Convert.hexToColor(s));};
+   var trace = function (model) {
+      return A2($Graphics$Collage.traced,$Graphics$Collage.solid(decodeColor(model.config.startColor)),$Graphics$Collage.path(values(model)));
+   };
    var parseFloat = function (s) {    return A2($Result.withDefault,0,$String.toFloat(s));};
    var SliderAttributes = F5(function (a,b,c,d,e) {    return {title: a,min: b,max: c,step: d,update: e};});
-   _op["==>"] = F2(function (v0,v1) {    return {ctor: "_Tuple2",_0: v0,_1: v1};});
+   _op["=>"] = F2(function (v0,v1) {    return {ctor: "_Tuple2",_0: v0,_1: v1};});
    var colorPicker = F2(function (address,v) {
       return A2($Html.input,
       _U.list([$Html$Attributes.type$("color")
               ,$Html$Attributes.value(v)
               ,A3($Html$Events.on,"input",$Html$Events.targetValue,$Signal.message(address))
-              ,$Html$Attributes.style(_U.list([A2(_op["==>"],"width","30em")]))]),
+              ,$Html$Attributes.style(_U.list([A2(_op["=>"],"width","30em")]))]),
       _U.list([]));
    });
    var slider = F2(function (attr,v) {
       return A2($Html.div,
-      _U.list([$Html$Attributes.style(_U.list([A2(_op["==>"],"width","40em")]))]),
+      _U.list([$Html$Attributes.style(_U.list([A2(_op["=>"],"width","40em")]))]),
       _U.list([A2($Html.span,
-              _U.list([$Html$Attributes.style(_U.list([A2(_op["==>"],"display","inline-block"),A2(_op["==>"],"width","7em")]))]),
+              _U.list([$Html$Attributes.style(_U.list([A2(_op["=>"],"display","inline-block"),A2(_op["=>"],"width","7em")]))]),
               _U.list([$Html.text(attr.title)]))
               ,A2($Html.input,
               _U.list([$Html$Attributes.type$("range")
@@ -11298,21 +11690,13 @@ Elm.Main.make = function (_elm) {
                       ,$Html$Attributes.step($Basics.toString(attr.step))
                       ,$Html$Attributes.value($Basics.toString(v))
                       ,A3($Html$Events.on,"input",$Html$Events.targetValue,function (_p1) {    return attr.update(parseFloat(_p1));})
-                      ,$Html$Attributes.style(_U.list([A2(_op["==>"],"width","30em")]))]),
+                      ,$Html$Attributes.style(_U.list([A2(_op["=>"],"width","30em")]))]),
               _U.list([]))
               ,A2($Html.span,
-              _U.list([$Html$Attributes.style(_U.list([A2(_op["==>"],"display","inline-block"),A2(_op["==>"],"width","7em")]))]),
+              _U.list([$Html$Attributes.style(_U.list([A2(_op["=>"],"display","inline-block"),A2(_op["=>"],"width","7em")]))]),
               _U.list([$Html.text($Basics.toString(v))]))]));
    });
-   var dataWidget = F2(function (address,model) {
-      return A2($Html.div,
-      _U.list([]),
-      _U.list([A2($Html.textarea,
-              _U.list([$Html$Attributes.style(_U.list([A2(_op["==>"],"width","30em"),A2(_op["==>"],"height","60em")]))
-                      ,$Html$Attributes.value(A2($Json$Encode.encode,2,$Proto$Harmonograph.configEncoder(model.config)))]),
-              _U.list([]))
-              ,A2($Html.button,_U.list([]),_U.list([$Html.text("Load")]))]));
-   });
+   var noEffects = function (m) {    return {ctor: "_Tuple2",_0: m,_1: $Effects.none};};
    var Y2 = function (a) {    return {ctor: "Y2",_0: a};};
    var Y1 = function (a) {    return {ctor: "Y1",_0: a};};
    var X2 = function (a) {    return {ctor: "X2",_0: a};};
@@ -11348,7 +11732,24 @@ Elm.Main.make = function (_elm) {
                                ,y: _U.list([{frequency: 0.1,phase: 0,amplitude: 111,damping: 1.0e-3}])
                                ,startColor: "#0000ff"
                                ,endColor: "#ff0000"}};
-   var init = {ctor: "_Tuple2",_0: initialModel,_1: $Effects.none};
+   var buttonStyle = $Html$Attributes.style(_U.list([A2(_op["=>"],"background-color","red")
+                                                    ,A2(_op["=>"],"color","white")
+                                                    ,A2(_op["=>"],"font-weight","bold")
+                                                    ,A2(_op["=>"],"border","none")
+                                                    ,A2(_op["=>"],"border-radius","0.3em")
+                                                    ,A2(_op["=>"],"margin","0.5em")
+                                                    ,A2(_op["=>"],"padding","1em")
+                                                    ,A2(_op["=>"],"cursor","pointer")]));
+   var dataWidget = F2(function (address,model) {
+      return A2($Html.div,
+      _U.list([]),
+      _U.list([A2($Html.textarea,
+              _U.list([$Html$Attributes.style(_U.list([A2(_op["=>"],"width","30em"),A2(_op["=>"],"height","60em")]))
+                      ,$Html$Attributes.value(A2($Json$Encode.encode,2,$Proto$Harmonograph.configEncoder(model.config)))]),
+              _U.list([]))
+              ,A2($Html.button,_U.list([buttonStyle]),_U.list([$Html.text("Load")]))]));
+   });
+   var init = noEffects(initialModel);
    var Model = F5(function (a,b,c,d,e) {    return {config: a,time: b,animate: c,updated: d,eff: e};});
    var maxPhase = 2 * $Basics.pi;
    var phaseAdd = F2(function (x,y) {    var z = x + y;return _U.cmp(z,maxPhase) > 0 ? z - maxPhase : z;});
@@ -11366,20 +11767,20 @@ Elm.Main.make = function (_elm) {
                  ,x2: $Maybe.Just(_U.update(x2,{phase: A2(phaseAdd,x2.phase,1.0e-2)}))
                  ,y1: $Maybe.Just(_U.update(y1,{phase: A2(phaseAdd,y1.phase,1.0e-2)}))
                  ,y2: $Maybe.Just(_U.update(y2,{phase: A2(phaseAdd,y2.phase,1.0e-2)}))});
-                 return {ctor: "_Tuple2",_0: _U.update(model,{config: c1}),_1: $Effects.none};
-              } else return {ctor: "_Tuple2",_0: model,_1: $Effects.none};
-         case "Start": return {ctor: "_Tuple2",_0: _U.update(model,{animate: true}),_1: $Effects.none};
-         case "Stop": return {ctor: "_Tuple2",_0: _U.update(model,{animate: false}),_1: $Effects.none};
-         case "SetConfig": return {ctor: "_Tuple2",_0: _U.update(model,{config: _p3._0}),_1: $Effects.none};
-         case "Url": if (model.updated) return {ctor: "_Tuple2",_0: model,_1: $Effects.none}; else {
+                 return noEffects(_U.update(model,{config: c1}));
+              } else return noEffects(model);
+         case "Start": return noEffects(_U.update(model,{animate: true}));
+         case "Stop": return noEffects(_U.update(model,{animate: false}));
+         case "SetConfig": return noEffects(_U.update(model,{config: _p3._0}));
+         case "Url": if (model.updated) return noEffects(model); else {
                  var r = A2($Json$Decode.decodeString,
                  $Proto$Harmonograph.configDecoder,
                  $Http.uriDecode(A2($String.dropLeft,1,A2($Debug.log,"url change",_p3._0))));
                  var _p4 = r;
                  if (_p4.ctor === "Ok") {
-                       return {ctor: "_Tuple2",_0: _U.update(model,{config: _p4._0,updated: true}),_1: $Effects.none};
+                       return noEffects(_U.update(model,{config: _p4._0,updated: true}));
                     } else {
-                       return {ctor: "_Tuple2",_0: model,_1: $Effects.none};
+                       return noEffects(model);
                     }
               }
          case "SetStartColor": var c = model.config;
@@ -11447,12 +11848,12 @@ Elm.Main.make = function (_elm) {
               ,A2(controlBlock,A2($Signal.forwardTo,address,Y1),def(model.config.y1))
               ,$Html.text("y2")
               ,A2(controlBlock,A2($Signal.forwardTo,address,Y2),def(model.config.y2))
-              ,A2($Html.button,_U.list([A2($Html$Events.onClick,address,Start)]),_U.list([$Html.text(">")]))
-              ,A2($Html.button,_U.list([A2($Html$Events.onClick,address,Stop)]),_U.list([$Html.text("||")]))]));
+              ,A2($Html.button,_U.list([buttonStyle,A2($Html$Events.onClick,address,Start)]),_U.list([$Html.text(">")]))
+              ,A2($Html.button,_U.list([buttonStyle,A2($Html$Events.onClick,address,Stop)]),_U.list([$Html.text("||")]))]));
    });
    var view = F2(function (address,model) {
       return A2($Html.div,
-      _U.list([$Html$Attributes.style(_U.list([A2(_op["==>"],"display","flex")]))]),
+      _U.list([$Html$Attributes.style(_U.list([A2(_op["=>"],"display","flex")]))]),
       _U.list([A2($Html.div,_U.list([]),_U.list([$Html.fromElement(A3($Graphics$Collage.collage,1000,1000,_U.list([trace(model)])))]))
               ,A2(paramControls,address,model)
               ,A2(dataWidget,address,model)]));
@@ -11472,6 +11873,7 @@ Elm.Main.make = function (_elm) {
                              ,Model: Model
                              ,app: app
                              ,init: init
+                             ,buttonStyle: buttonStyle
                              ,initialModel: initialModel
                              ,lfo: lfo
                              ,phaseAdd: phaseAdd
@@ -11492,6 +11894,7 @@ Elm.Main.make = function (_elm) {
                              ,X2: X2
                              ,Y1: Y1
                              ,Y2: Y2
+                             ,noEffects: noEffects
                              ,update: update
                              ,view: view
                              ,dataWidget: dataWidget
@@ -11501,6 +11904,7 @@ Elm.Main.make = function (_elm) {
                              ,SliderAttributes: SliderAttributes
                              ,slider: slider
                              ,parseFloat: parseFloat
+                             ,decodeColor: decodeColor
                              ,trace: trace
                              ,values: values
                              ,point: point

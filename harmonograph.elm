@@ -2,7 +2,7 @@ import Array
 import Color exposing (..)
 import Color.Convert exposing (hexToColor)
 import Effects exposing (Effects)
-import Focus exposing ((=>))
+import Focus
 import Graphics.Collage exposing (..)
 import Graphics.Element exposing (..)
 import History
@@ -63,6 +63,19 @@ app =
 init : (Model, Effects Action)
 init =
   noEffects initialModel
+
+buttonStyle : Attribute
+buttonStyle =
+  style
+    [ "background-color" => "red"
+    , "color" => "white"
+    , "font-weight" => "bold"
+    , "border" => "none"
+    , "border-radius" => "0.3em"
+    , "margin" => "0.5em"
+    , "padding" => "1em"
+    , "cursor" => "pointer"
+    ]
 
 
 initialModel : Model
@@ -305,7 +318,7 @@ update action model =
 view address model =
   div
     [ style
-      [ "display" ==> "flex"
+      [ "display" => "flex"
       ]
     ]
     [ div []
@@ -321,12 +334,12 @@ dataWidget address model =
   div []
     [ textarea
       [ style
-        [ "width" ==> "30em"
-        , "height" ==> "60em"
+        [ "width" => "30em"
+        , "height" => "60em"
         ]
       , value <| JE.encode 2 <| configEncoder model.config
       ] []
-    , button []
+    , button [ buttonStyle ]
       [ Html.text "Load" ]
     ]
 
@@ -360,13 +373,13 @@ paramControls address model =
     , controlBlock (Signal.forwardTo address Y1) (def model.config.y1)
     , Html.text "y2"
     , controlBlock (Signal.forwardTo address Y2) (def model.config.y2)
-    , button [ onClick address Start ] [ Html.text ">" ]
-    , button [ onClick address Stop ] [ Html.text "||" ]
+    , button [ buttonStyle, onClick address Start ] [ Html.text ">" ]
+    , button [ buttonStyle, onClick address Stop ] [ Html.text "||" ]
     ]
 
 
-(==>) : String -> String -> (String, String)
-(==>) = (,)
+(=>) : String -> String -> (String, String)
+(=>) = (,)
 
 
 controlBlock : Signal.Address Params -> Params -> Html
@@ -410,7 +423,7 @@ colorPicker address v =
     , Html.Attributes.value v
     , on "input" targetValue (Signal.message address)
     , style
-      [ "width" ==> "30em"
+      [ "width" => "30em"
       ]
     ] []
 
@@ -428,13 +441,13 @@ slider : SliderAttributes -> Float -> Html
 slider attr v =
   div
     [ style
-      [ "width" ==> "40em"
+      [ "width" => "40em"
       ]
     ]
     [ span
       [ style
-        [ "display" ==> "inline-block"
-        , "width" ==> "7em"
+        [ "display" => "inline-block"
+        , "width" => "7em"
         ]
       ]
       [ Html.text attr.title
@@ -447,13 +460,13 @@ slider attr v =
       , Html.Attributes.value <| toString v
       , on "input" targetValue (parseFloat >> attr.update)
       , style
-        [ "width" ==> "30em"
+        [ "width" => "30em"
         ]
       ] []
     , span
       [ style
-        [ "display" ==> "inline-block"
-        , "width" ==> "7em"
+        [ "display" => "inline-block"
+        , "width" => "7em"
         ]
       ]
       [ Html.text <| toString v
