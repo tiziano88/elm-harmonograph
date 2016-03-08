@@ -12,6 +12,7 @@ import Html.Events exposing (..)
 import Http
 import Json.Decode as JD
 import Json.Encode as JE
+import Signal.Extra
 import StartApp
 import String
 import Task
@@ -42,10 +43,14 @@ maxPhase =
 type alias Model =
   { config : Config
   , time : Float
-  , animate : Bool
   , updated : Bool
   , eff : Float
   }
+
+
+animate : Signal.Mailbox Bool
+animate =
+  Signal.mailbox False
 
 
 app =
@@ -54,7 +59,7 @@ app =
     , view = view
     , update = update
     , inputs =
-      [ Time.fps fps |> Signal.map (always Tick)
+      [ Signal.Extra.keepWhen animate.signal 0.0 (Time.fps fps) |> Signal.map (always Tick)
       , History.hash |> Signal.dropRepeats |> Signal.map Url
       ]
     }
@@ -82,7 +87,6 @@ initialModel : Model
 initialModel =
   { time = 0.0
   , eff = 0.0
-  , animate = False
   , updated = False
   , config =
     { resolution = 4
@@ -204,8 +208,6 @@ y2 =
 
 type Action
   = Tick
-  | Start
-  | Stop
   | Url String
   | SetConfig Config
   | SetStartColor String
@@ -225,32 +227,21 @@ update : Action -> Model -> ( Model, Effects Action )
 update action model =
   case action of
     Tick ->
-      if
-        model.animate
-      then
-        let
-          c = model.config
-          x1 = def model.config.x1
-          x2 = def model.config.x2
-          y1 = def model.config.y1
-          y2 = def model.config.y2
-          c1 =
-            { c
-            | x1 = Just { x1 | phase = phaseAdd x1.phase 0.01 }
-            , x2 = Just { x2 | phase = phaseAdd x2.phase 0.01 }
-            , y1 = Just { y1 | phase = phaseAdd y1.phase 0.01 }
-            , y2 = Just { y2 | phase = phaseAdd y2.phase 0.01 }
-            }
-        in
-          noEffects { model | config = c1 }
-      else
-        noEffects model
-
-    Start ->
-      noEffects { model | animate = True }
-
-    Stop ->
-      noEffects { model | animate = False }
+      let
+        c = model.config
+        x1 = def model.config.x1
+        x2 = def model.config.x2
+        y1 = def model.config.y1
+        y2 = def model.config.y2
+        c1 =
+          { c
+          | x1 = Just { x1 | phase = phaseAdd x1.phase 0.01 }
+          , x2 = Just { x2 | phase = phaseAdd x2.phase 0.01 }
+          , y1 = Just { y1 | phase = phaseAdd y1.phase 0.01 }
+          , y2 = Just { y2 | phase = phaseAdd y2.phase 0.01 }
+          }
+      in
+        noEffects { model | config = c1 }
 
     SetConfig c ->
       noEffects { model | config = c }
@@ -373,8 +364,8 @@ paramControls address model =
     , controlBlock (Signal.forwardTo address Y1) (def model.config.y1)
     , Html.text "y2"
     , controlBlock (Signal.forwardTo address Y2) (def model.config.y2)
-    , button [ buttonStyle, onClick address Start ] [ Html.text ">" ]
-    , button [ buttonStyle, onClick address Stop ] [ Html.text "||" ]
+    , button [ buttonStyle, onClick animate.address True ] [ Html.text ">" ]
+    , button [ buttonStyle, onClick animate.address False ] [ Html.text "||" ]
     ]
 
 

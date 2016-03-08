@@ -5397,6 +5397,314 @@ Elm.Signal.make = function (_elm) {
                                ,message: message
                                ,forwardTo: forwardTo
                                ,Mailbox: Mailbox};
+};Elm.Signal = Elm.Signal || {};
+Elm.Signal.Extra = Elm.Signal.Extra || {};
+Elm.Signal.Extra.make = function (_elm) {
+   "use strict";
+   _elm.Signal = _elm.Signal || {};
+   _elm.Signal.Extra = _elm.Signal.Extra || {};
+   if (_elm.Signal.Extra.values) return _elm.Signal.Extra.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var _op = {};
+   var unsafeFromJust = function (maybe) {
+      var _p0 = maybe;
+      if (_p0.ctor === "Just") {
+            return _p0._0;
+         } else {
+            return _U.crashCase("Signal.Extra",{start: {line: 510,column: 3},end: {line: 515,column: 59}},_p0)("This case should have been unreachable");
+         }
+   };
+   var passiveMap2 = F2(function (func,a) {    return function (_p2) {    return A3($Signal.map2,func,a,A2($Signal.sampleOn,a,_p2));};});
+   var withPassive = passiveMap2(F2(function (x,y) {    return x(y);}));
+   var combine = A2($List.foldr,$Signal.map2(F2(function (x,y) {    return A2($List._op["::"],x,y);})),$Signal.constant(_U.list([])));
+   var mergeMany = F2(function (original,others) {    return A3($List.foldl,$Signal.merge,original,others);});
+   var filter = function (initial) {    return A2($Signal.filterMap,$Basics.identity,initial);};
+   var keepIf = $Signal.filter;
+   var runBuffer$ = F3(function (l,n,input) {
+      var f = F2(function (inp,prev) {
+         var l = $List.length(prev);
+         return _U.cmp(l,n) < 0 ? A2($Basics._op["++"],prev,_U.list([inp])) : A2($Basics._op["++"],A2($List.drop,l - n + 1,prev),_U.list([inp]));
+      });
+      return A3($Signal.foldp,f,l,input);
+   });
+   var runBuffer = runBuffer$(_U.list([]));
+   var initSignal = function (s) {    return A2($Signal.sampleOn,$Signal.constant({ctor: "_Tuple0"}),s);};
+   var zip4 = $Signal.map4(F4(function (v0,v1,v2,v3) {    return {ctor: "_Tuple4",_0: v0,_1: v1,_2: v2,_3: v3};}));
+   var zip3 = $Signal.map3(F3(function (v0,v1,v2) {    return {ctor: "_Tuple3",_0: v0,_1: v1,_2: v2};}));
+   var zip = $Signal.map2(F2(function (v0,v1) {    return {ctor: "_Tuple2",_0: v0,_1: v1};}));
+   var keepWhen = F3(function (boolSig,a,aSig) {
+      return A2($Signal.map,$Basics.snd,A3(keepIf,$Basics.fst,{ctor: "_Tuple2",_0: true,_1: a},A2($Signal.sampleOn,aSig,A2(zip,boolSig,aSig))));
+   });
+   var sampleWhen = F3(function (bs,def,sig) {
+      return A2($Signal.map,$Basics.snd,A3(keepIf,$Basics.fst,{ctor: "_Tuple2",_0: true,_1: def},A2(zip,bs,sig)));
+   });
+   var andMap = $Signal.map2(F2(function (x,y) {    return x(y);}));
+   _op["~"] = andMap;
+   var applyMany = F2(function (fs,l) {    return A2(_op["~"],fs,combine(l));});
+   _op["~>"] = $Basics.flip($Signal.map);
+   var foldpWith = F4(function (unpack,step,init,input) {
+      var step$ = F2(function (a,_p3) {    var _p4 = _p3;return unpack(A2(step,a,_p4._1));});
+      return A2(_op["~>"],A3($Signal.foldp,step$,init,input),$Basics.fst);
+   });
+   _op["<~"] = $Signal.map;
+   var unzip = function (pairS) {    return {ctor: "_Tuple2",_0: A2(_op["<~"],$Basics.fst,pairS),_1: A2(_op["<~"],$Basics.snd,pairS)};};
+   var unzip3 = function (pairS) {
+      return {ctor: "_Tuple3"
+             ,_0: A2(_op["<~"],function (_p5) {    var _p6 = _p5;return _p6._0;},pairS)
+             ,_1: A2(_op["<~"],function (_p7) {    var _p8 = _p7;return _p8._1;},pairS)
+             ,_2: A2(_op["<~"],function (_p9) {    var _p10 = _p9;return _p10._2;},pairS)};
+   };
+   var unzip4 = function (pairS) {
+      return {ctor: "_Tuple4"
+             ,_0: A2(_op["<~"],function (_p11) {    var _p12 = _p11;return _p12._0;},pairS)
+             ,_1: A2(_op["<~"],function (_p13) {    var _p14 = _p13;return _p14._1;},pairS)
+             ,_2: A2(_op["<~"],function (_p15) {    var _p16 = _p15;return _p16._2;},pairS)
+             ,_3: A2(_op["<~"],function (_p17) {    var _p18 = _p17;return _p18._3;},pairS)};
+   };
+   var foldp$ = F3(function (fun,initFun,input) {
+      var fun$ = F2(function (_p19,mb) {    var _p20 = _p19;return $Maybe.Just(A2(fun,_p20._0,A2($Maybe.withDefault,_p20._1,mb)));});
+      var initial = A2(_op["~>"],initSignal(input),initFun);
+      var rest = A3($Signal.foldp,fun$,$Maybe.Nothing,A2(zip,input,initial));
+      return A2(_op["<~"],unsafeFromJust,A2($Signal.merge,A2(_op["<~"],$Maybe.Just,initial),rest));
+   });
+   var deltas = function (signal) {
+      var initial = function (value) {    return {ctor: "_Tuple2",_0: value,_1: value};};
+      var step = F2(function (value,delta) {    return {ctor: "_Tuple2",_0: $Basics.snd(delta),_1: value};});
+      return A3(foldp$,step,initial,signal);
+   };
+   var foldps = F3(function (f,bs,aS) {
+      return A2(_op["<~"],$Basics.fst,A3($Signal.foldp,F2(function (a,_p21) {    var _p22 = _p21;return A2(f,a,_p22._1);}),bs,aS));
+   });
+   var delayRound = F2(function (b,bS) {
+      return A3(foldps,F2(function ($new,old) {    return {ctor: "_Tuple2",_0: old,_1: $new};}),{ctor: "_Tuple2",_0: b,_1: b},bS);
+   });
+   var filterFold = F2(function (f,initial) {
+      var f$ = F2(function (a,s) {    var res = A2(f,a,s);return {ctor: "_Tuple2",_0: res,_1: A2($Maybe.withDefault,s,res)};});
+      return function (_p23) {
+         return A2(filter,initial,A3(foldps,f$,{ctor: "_Tuple2",_0: $Maybe.Just(initial),_1: initial},_p23));
+      };
+   });
+   var foldps$ = F3(function (f,iF,aS) {
+      return A2(_op["<~"],$Basics.fst,A3(foldp$,F2(function (a,_p24) {    var _p25 = _p24;return A2(f,a,_p25._1);}),iF,aS));
+   });
+   var switchHelper = F4(function (filter,b,l,r) {
+      var lAndR = A2($Signal.merge,
+      A3(filter,b,$Maybe.Nothing,A2(_op["<~"],$Maybe.Just,l)),
+      A3(filter,A2(_op["<~"],$Basics.not,b),$Maybe.Nothing,A2(_op["<~"],$Maybe.Just,r)));
+      var base = A2(_op["~"],
+      A2(_op["~"],A2(_op["<~"],F3(function (bi,li,ri) {    return $Maybe.Just(bi ? li : ri);}),initSignal(b)),initSignal(l)),
+      initSignal(r));
+      return A2(_op["<~"],unsafeFromJust,A2($Signal.merge,base,lAndR));
+   });
+   var switchWhen = F3(function (b,l,r) {    return A4(switchHelper,keepWhen,b,l,r);});
+   var switchSample = F3(function (b,l,r) {    return A4(switchHelper,sampleWhen,b,l,r);});
+   var keepThen = F3(function (choice,base,signal) {    return A3(switchSample,choice,signal,$Signal.constant(base));});
+   var keepWhenI = F2(function (fs,s) {
+      return A2(_op["~>"],A3(keepWhen,A2($Signal.merge,$Signal.constant(true),fs),$Maybe.Nothing,A2(_op["<~"],$Maybe.Just,s)),unsafeFromJust);
+   });
+   var fairMerge = F3(function (resolve,left,right) {
+      var merged = A2($Signal.merge,left,right);
+      var boolRight = A2(_op["<~"],$Basics.always(false),right);
+      var boolLeft = A2(_op["<~"],$Basics.always(true),left);
+      var bothUpdated = A2(_op["~"],
+      A2(_op["<~"],F2(function (x,y) {    return !_U.eq(x,y);}),A2($Signal.merge,boolLeft,boolRight)),
+      A2($Signal.merge,boolRight,boolLeft));
+      var keep = keepWhenI(bothUpdated);
+      var resolved = A2(_op["~"],A2(_op["<~"],resolve,keep(left)),keep(right));
+      return A2($Signal.merge,resolved,merged);
+   });
+   var mapMany = F2(function (f,l) {    return A2(_op["<~"],f,combine(l));});
+   return _elm.Signal.Extra.values = {_op: _op
+                                     ,andMap: andMap
+                                     ,zip: zip
+                                     ,zip3: zip3
+                                     ,zip4: zip4
+                                     ,unzip: unzip
+                                     ,unzip3: unzip3
+                                     ,unzip4: unzip4
+                                     ,foldp$: foldp$
+                                     ,foldps: foldps
+                                     ,foldps$: foldps$
+                                     ,runBuffer: runBuffer
+                                     ,runBuffer$: runBuffer$
+                                     ,deltas: deltas
+                                     ,delayRound: delayRound
+                                     ,keepIf: keepIf
+                                     ,keepWhen: keepWhen
+                                     ,sampleWhen: sampleWhen
+                                     ,switchWhen: switchWhen
+                                     ,keepWhenI: keepWhenI
+                                     ,switchSample: switchSample
+                                     ,keepThen: keepThen
+                                     ,filter: filter
+                                     ,filterFold: filterFold
+                                     ,fairMerge: fairMerge
+                                     ,mergeMany: mergeMany
+                                     ,combine: combine
+                                     ,mapMany: mapMany
+                                     ,applyMany: applyMany
+                                     ,passiveMap2: passiveMap2
+                                     ,withPassive: withPassive};
+};Elm.Native.Time = {};
+
+Elm.Native.Time.make = function(localRuntime)
+{
+	localRuntime.Native = localRuntime.Native || {};
+	localRuntime.Native.Time = localRuntime.Native.Time || {};
+	if (localRuntime.Native.Time.values)
+	{
+		return localRuntime.Native.Time.values;
+	}
+
+	var NS = Elm.Native.Signal.make(localRuntime);
+	var Maybe = Elm.Maybe.make(localRuntime);
+
+
+	// FRAMES PER SECOND
+
+	function fpsWhen(desiredFPS, isOn)
+	{
+		var msPerFrame = 1000 / desiredFPS;
+		var ticker = NS.input('fps-' + desiredFPS, null);
+
+		function notifyTicker()
+		{
+			localRuntime.notify(ticker.id, null);
+		}
+
+		function firstArg(x, y)
+		{
+			return x;
+		}
+
+		// input fires either when isOn changes, or when ticker fires.
+		// Its value is a tuple with the current timestamp, and the state of isOn
+		var input = NS.timestamp(A3(NS.map2, F2(firstArg), NS.dropRepeats(isOn), ticker));
+
+		var initialState = {
+			isOn: false,
+			time: localRuntime.timer.programStart,
+			delta: 0
+		};
+
+		var timeoutId;
+
+		function update(input, state)
+		{
+			var currentTime = input._0;
+			var isOn = input._1;
+			var wasOn = state.isOn;
+			var previousTime = state.time;
+
+			if (isOn)
+			{
+				timeoutId = localRuntime.setTimeout(notifyTicker, msPerFrame);
+			}
+			else if (wasOn)
+			{
+				clearTimeout(timeoutId);
+			}
+
+			return {
+				isOn: isOn,
+				time: currentTime,
+				delta: (isOn && !wasOn) ? 0 : currentTime - previousTime
+			};
+		}
+
+		return A2(
+			NS.map,
+			function(state) { return state.delta; },
+			A3(NS.foldp, F2(update), update(input.value, initialState), input)
+		);
+	}
+
+
+	// EVERY
+
+	function every(t)
+	{
+		var ticker = NS.input('every-' + t, null);
+		function tellTime()
+		{
+			localRuntime.notify(ticker.id, null);
+		}
+		var clock = A2(NS.map, fst, NS.timestamp(ticker));
+		setInterval(tellTime, t);
+		return clock;
+	}
+
+
+	function fst(pair)
+	{
+		return pair._0;
+	}
+
+
+	function read(s)
+	{
+		var t = Date.parse(s);
+		return isNaN(t) ? Maybe.Nothing : Maybe.Just(t);
+	}
+
+	return localRuntime.Native.Time.values = {
+		fpsWhen: F2(fpsWhen),
+		every: every,
+		toDate: function(t) { return new Date(t); },
+		read: read
+	};
+};
+Elm.Time = Elm.Time || {};
+Elm.Time.make = function (_elm) {
+   "use strict";
+   _elm.Time = _elm.Time || {};
+   if (_elm.Time.values) return _elm.Time.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Native$Signal = Elm.Native.Signal.make(_elm),
+   $Native$Time = Elm.Native.Time.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var _op = {};
+   var delay = $Native$Signal.delay;
+   var since = F2(function (time,signal) {
+      var stop = A2($Signal.map,$Basics.always(-1),A2(delay,time,signal));
+      var start = A2($Signal.map,$Basics.always(1),signal);
+      var delaydiff = A3($Signal.foldp,F2(function (x,y) {    return x + y;}),0,A2($Signal.merge,start,stop));
+      return A2($Signal.map,F2(function (x,y) {    return !_U.eq(x,y);})(0),delaydiff);
+   });
+   var timestamp = $Native$Signal.timestamp;
+   var every = $Native$Time.every;
+   var fpsWhen = $Native$Time.fpsWhen;
+   var fps = function (targetFrames) {    return A2(fpsWhen,targetFrames,$Signal.constant(true));};
+   var inMilliseconds = function (t) {    return t;};
+   var millisecond = 1;
+   var second = 1000 * millisecond;
+   var minute = 60 * second;
+   var hour = 60 * minute;
+   var inHours = function (t) {    return t / hour;};
+   var inMinutes = function (t) {    return t / minute;};
+   var inSeconds = function (t) {    return t / second;};
+   return _elm.Time.values = {_op: _op
+                             ,millisecond: millisecond
+                             ,second: second
+                             ,minute: minute
+                             ,hour: hour
+                             ,inMilliseconds: inMilliseconds
+                             ,inSeconds: inSeconds
+                             ,inMinutes: inMinutes
+                             ,inHours: inHours
+                             ,fps: fps
+                             ,fpsWhen: fpsWhen
+                             ,every: every
+                             ,timestamp: timestamp
+                             ,delay: delay
+                             ,since: since};
 };Elm.Native = Elm.Native || {};
 Elm.Native.History = {};
 Elm.Native.History.make = function(localRuntime){
@@ -6622,160 +6930,6 @@ Elm.Char.make = function (_elm) {
                              ,toLocaleLower: toLocaleLower
                              ,toCode: toCode
                              ,fromCode: fromCode};
-};Elm.Native.Time = {};
-
-Elm.Native.Time.make = function(localRuntime)
-{
-	localRuntime.Native = localRuntime.Native || {};
-	localRuntime.Native.Time = localRuntime.Native.Time || {};
-	if (localRuntime.Native.Time.values)
-	{
-		return localRuntime.Native.Time.values;
-	}
-
-	var NS = Elm.Native.Signal.make(localRuntime);
-	var Maybe = Elm.Maybe.make(localRuntime);
-
-
-	// FRAMES PER SECOND
-
-	function fpsWhen(desiredFPS, isOn)
-	{
-		var msPerFrame = 1000 / desiredFPS;
-		var ticker = NS.input('fps-' + desiredFPS, null);
-
-		function notifyTicker()
-		{
-			localRuntime.notify(ticker.id, null);
-		}
-
-		function firstArg(x, y)
-		{
-			return x;
-		}
-
-		// input fires either when isOn changes, or when ticker fires.
-		// Its value is a tuple with the current timestamp, and the state of isOn
-		var input = NS.timestamp(A3(NS.map2, F2(firstArg), NS.dropRepeats(isOn), ticker));
-
-		var initialState = {
-			isOn: false,
-			time: localRuntime.timer.programStart,
-			delta: 0
-		};
-
-		var timeoutId;
-
-		function update(input, state)
-		{
-			var currentTime = input._0;
-			var isOn = input._1;
-			var wasOn = state.isOn;
-			var previousTime = state.time;
-
-			if (isOn)
-			{
-				timeoutId = localRuntime.setTimeout(notifyTicker, msPerFrame);
-			}
-			else if (wasOn)
-			{
-				clearTimeout(timeoutId);
-			}
-
-			return {
-				isOn: isOn,
-				time: currentTime,
-				delta: (isOn && !wasOn) ? 0 : currentTime - previousTime
-			};
-		}
-
-		return A2(
-			NS.map,
-			function(state) { return state.delta; },
-			A3(NS.foldp, F2(update), update(input.value, initialState), input)
-		);
-	}
-
-
-	// EVERY
-
-	function every(t)
-	{
-		var ticker = NS.input('every-' + t, null);
-		function tellTime()
-		{
-			localRuntime.notify(ticker.id, null);
-		}
-		var clock = A2(NS.map, fst, NS.timestamp(ticker));
-		setInterval(tellTime, t);
-		return clock;
-	}
-
-
-	function fst(pair)
-	{
-		return pair._0;
-	}
-
-
-	function read(s)
-	{
-		var t = Date.parse(s);
-		return isNaN(t) ? Maybe.Nothing : Maybe.Just(t);
-	}
-
-	return localRuntime.Native.Time.values = {
-		fpsWhen: F2(fpsWhen),
-		every: every,
-		toDate: function(t) { return new Date(t); },
-		read: read
-	};
-};
-Elm.Time = Elm.Time || {};
-Elm.Time.make = function (_elm) {
-   "use strict";
-   _elm.Time = _elm.Time || {};
-   if (_elm.Time.values) return _elm.Time.values;
-   var _U = Elm.Native.Utils.make(_elm),
-   $Basics = Elm.Basics.make(_elm),
-   $Native$Signal = Elm.Native.Signal.make(_elm),
-   $Native$Time = Elm.Native.Time.make(_elm),
-   $Signal = Elm.Signal.make(_elm);
-   var _op = {};
-   var delay = $Native$Signal.delay;
-   var since = F2(function (time,signal) {
-      var stop = A2($Signal.map,$Basics.always(-1),A2(delay,time,signal));
-      var start = A2($Signal.map,$Basics.always(1),signal);
-      var delaydiff = A3($Signal.foldp,F2(function (x,y) {    return x + y;}),0,A2($Signal.merge,start,stop));
-      return A2($Signal.map,F2(function (x,y) {    return !_U.eq(x,y);})(0),delaydiff);
-   });
-   var timestamp = $Native$Signal.timestamp;
-   var every = $Native$Time.every;
-   var fpsWhen = $Native$Time.fpsWhen;
-   var fps = function (targetFrames) {    return A2(fpsWhen,targetFrames,$Signal.constant(true));};
-   var inMilliseconds = function (t) {    return t;};
-   var millisecond = 1;
-   var second = 1000 * millisecond;
-   var minute = 60 * second;
-   var hour = 60 * minute;
-   var inHours = function (t) {    return t / hour;};
-   var inMinutes = function (t) {    return t / minute;};
-   var inSeconds = function (t) {    return t / second;};
-   return _elm.Time.values = {_op: _op
-                             ,millisecond: millisecond
-                             ,second: second
-                             ,minute: minute
-                             ,hour: hour
-                             ,inMilliseconds: inMilliseconds
-                             ,inSeconds: inSeconds
-                             ,inMinutes: inMinutes
-                             ,inHours: inHours
-                             ,fps: fps
-                             ,fpsWhen: fpsWhen
-                             ,every: every
-                             ,timestamp: timestamp
-                             ,delay: delay
-                             ,since: since};
 };Elm.Native.String = {};
 
 Elm.Native.String.make = function(localRuntime) {
@@ -11638,6 +11792,7 @@ Elm.Main.make = function (_elm) {
    $Proto$Harmonograph = Elm.Proto.Harmonograph.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm),
+   $Signal$Extra = Elm.Signal.Extra.make(_elm),
    $StartApp = Elm.StartApp.make(_elm),
    $String = Elm.String.make(_elm),
    $Task = Elm.Task.make(_elm),
@@ -11705,8 +11860,6 @@ Elm.Main.make = function (_elm) {
    var SetStartColor = function (a) {    return {ctor: "SetStartColor",_0: a};};
    var SetConfig = function (a) {    return {ctor: "SetConfig",_0: a};};
    var Url = function (a) {    return {ctor: "Url",_0: a};};
-   var Stop = {ctor: "Stop"};
-   var Start = {ctor: "Start"};
    var Tick = {ctor: "Tick"};
    var y2 = A2($Focus.create,function (c) {    return c.y2;},F2(function (f,c) {    return _U.update(c,{y2: f(c.y2)});}));
    var y1 = A2($Focus.create,function (c) {    return c.y1;},F2(function (f,c) {    return _U.update(c,{y1: f(c.y1)});}));
@@ -11720,7 +11873,6 @@ Elm.Main.make = function (_elm) {
    };
    var initialModel = {time: 0.0
                       ,eff: 0.0
-                      ,animate: false
                       ,updated: false
                       ,config: {resolution: 4
                                ,max: 1000
@@ -11750,27 +11902,24 @@ Elm.Main.make = function (_elm) {
               ,A2($Html.button,_U.list([buttonStyle]),_U.list([$Html.text("Load")]))]));
    });
    var init = noEffects(initialModel);
-   var Model = F5(function (a,b,c,d,e) {    return {config: a,time: b,animate: c,updated: d,eff: e};});
+   var animate = $Signal.mailbox(false);
+   var Model = F4(function (a,b,c,d) {    return {config: a,time: b,updated: c,eff: d};});
    var maxPhase = 2 * $Basics.pi;
    var phaseAdd = F2(function (x,y) {    var z = x + y;return _U.cmp(z,maxPhase) > 0 ? z - maxPhase : z;});
    var update = F2(function (action,model) {
       var _p3 = action;
       switch (_p3.ctor)
-      {case "Tick": if (model.animate) {
-                 var y2 = def(model.config.y2);
-                 var y1 = def(model.config.y1);
-                 var x2 = def(model.config.x2);
-                 var x1 = def(model.config.x1);
-                 var c = model.config;
-                 var c1 = _U.update(c,
-                 {x1: $Maybe.Just(_U.update(x1,{phase: A2(phaseAdd,x1.phase,1.0e-2)}))
-                 ,x2: $Maybe.Just(_U.update(x2,{phase: A2(phaseAdd,x2.phase,1.0e-2)}))
-                 ,y1: $Maybe.Just(_U.update(y1,{phase: A2(phaseAdd,y1.phase,1.0e-2)}))
-                 ,y2: $Maybe.Just(_U.update(y2,{phase: A2(phaseAdd,y2.phase,1.0e-2)}))});
-                 return noEffects(_U.update(model,{config: c1}));
-              } else return noEffects(model);
-         case "Start": return noEffects(_U.update(model,{animate: true}));
-         case "Stop": return noEffects(_U.update(model,{animate: false}));
+      {case "Tick": var y2 = def(model.config.y2);
+           var y1 = def(model.config.y1);
+           var x2 = def(model.config.x2);
+           var x1 = def(model.config.x1);
+           var c = model.config;
+           var c1 = _U.update(c,
+           {x1: $Maybe.Just(_U.update(x1,{phase: A2(phaseAdd,x1.phase,1.0e-2)}))
+           ,x2: $Maybe.Just(_U.update(x2,{phase: A2(phaseAdd,x2.phase,1.0e-2)}))
+           ,y1: $Maybe.Just(_U.update(y1,{phase: A2(phaseAdd,y1.phase,1.0e-2)}))
+           ,y2: $Maybe.Just(_U.update(y2,{phase: A2(phaseAdd,y2.phase,1.0e-2)}))});
+           return noEffects(_U.update(model,{config: c1}));
          case "SetConfig": return noEffects(_U.update(model,{config: _p3._0}));
          case "Url": if (model.updated) return noEffects(model); else {
                  var r = A2($Json$Decode.decodeString,
@@ -11848,8 +11997,8 @@ Elm.Main.make = function (_elm) {
               ,A2(controlBlock,A2($Signal.forwardTo,address,Y1),def(model.config.y1))
               ,$Html.text("y2")
               ,A2(controlBlock,A2($Signal.forwardTo,address,Y2),def(model.config.y2))
-              ,A2($Html.button,_U.list([buttonStyle,A2($Html$Events.onClick,address,Start)]),_U.list([$Html.text(">")]))
-              ,A2($Html.button,_U.list([buttonStyle,A2($Html$Events.onClick,address,Stop)]),_U.list([$Html.text("||")]))]));
+              ,A2($Html.button,_U.list([buttonStyle,A2($Html$Events.onClick,animate.address,true)]),_U.list([$Html.text(">")]))
+              ,A2($Html.button,_U.list([buttonStyle,A2($Html$Events.onClick,animate.address,false)]),_U.list([$Html.text("||")]))]));
    });
    var view = F2(function (address,model) {
       return A2($Html.div,
@@ -11862,7 +12011,8 @@ Elm.Main.make = function (_elm) {
    var app = $StartApp.start({init: init
                              ,view: view
                              ,update: update
-                             ,inputs: _U.list([A2($Signal.map,$Basics.always(Tick),$Time.fps(fps)),A2($Signal.map,Url,$Signal.dropRepeats($History.hash))])});
+                             ,inputs: _U.list([A2($Signal.map,$Basics.always(Tick),A3($Signal$Extra.keepWhen,animate.signal,0.0,$Time.fps(fps)))
+                                              ,A2($Signal.map,Url,$Signal.dropRepeats($History.hash))])});
    var lfo = function (model) {    return _U.update(model,{eff: def(model.config.x1).phase + 10 * $Basics.sin(model.time / $Basics.toFloat(fps))});};
    var tasks = Elm.Native.Task.make(_elm).performSignal("tasks",app.tasks);
    var main = app.html;
@@ -11871,6 +12021,7 @@ Elm.Main.make = function (_elm) {
                              ,fps: fps
                              ,maxPhase: maxPhase
                              ,Model: Model
+                             ,animate: animate
                              ,app: app
                              ,init: init
                              ,buttonStyle: buttonStyle
@@ -11884,8 +12035,6 @@ Elm.Main.make = function (_elm) {
                              ,y1: y1
                              ,y2: y2
                              ,Tick: Tick
-                             ,Start: Start
-                             ,Stop: Stop
                              ,Url: Url
                              ,SetConfig: SetConfig
                              ,SetStartColor: SetStartColor
